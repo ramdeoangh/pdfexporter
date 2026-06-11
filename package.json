@@ -2,7 +2,7 @@
   "name": "pdfexporter",
   "displayName": "MD-PDF Exporter",
   "description": "Export Markdown files to PDF with Mermaid diagrams and local images rendered inline.",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "publisher": "ramdeoangh",
   "icon": "package/assets/img/mdexport.png",
   "repository": {
