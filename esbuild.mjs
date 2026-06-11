@@ -1,17 +1,22 @@
 import * as esbuild from "esbuild";
+import { cpSync, mkdirSync } from "fs";
 
 const watch = process.argv.includes("--watch");
 
-const ctx = await esbuild.context({
-  entryPoints: ["src/extension.ts"],
+const shared = {
   bundle: true,
-  outfile: "dist/extension.js",
-  external: ["vscode"],
   format: "cjs",
   platform: "node",
   target: "node18",
   sourcemap: true,
   logLevel: "info",
+};
+
+const ctx = await esbuild.context({
+  ...shared,
+  entryPoints: ["src/extension.ts", "src/exportCli.ts"],
+  outdir: "package/dist",
+  external: ["vscode"],
 });
 
 if (watch) {
@@ -21,3 +26,6 @@ if (watch) {
   await ctx.rebuild();
   await ctx.dispose();
 }
+
+mkdirSync("package/assets/img", { recursive: true });
+cpSync("src/img", "package/assets/img", { recursive: true });

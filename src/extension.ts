@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import { getExporterConfig } from "./config";
-import { exportMarkdownToPdf } from "./pdfExporter";
+import { exportMarkdownToPdfViaHost } from "./subprocessExport";
 
 export function activate(context: vscode.ExtensionContext): void {
   const disposable = vscode.commands.registerCommand(
@@ -22,9 +22,10 @@ export function activate(context: vscode.ExtensionContext): void {
         },
         async () => {
           try {
-            const outputPath = await exportMarkdownToPdf({
+            const outputPath = await exportMarkdownToPdfViaHost({
               markdownPath: markdownUri.fsPath,
               config,
+              extensionPath: context.extensionPath,
             });
 
             const openAction = "Open PDF";
@@ -48,9 +49,7 @@ export function activate(context: vscode.ExtensionContext): void {
           } catch (error) {
             const message =
               error instanceof Error ? error.message : String(error);
-            vscode.window.showErrorMessage(
-              `Markdown PDF export failed: ${message}`
-            );
+            vscode.window.showErrorMessage(`MD-PDF export failed: ${message}`);
           }
         }
       );

@@ -11,6 +11,7 @@ export interface ExporterConfig {
   renderMermaid: boolean;
   mermaidTheme: string;
   exportTimeout: number;
+  showLogo: boolean;
 }
 
 export function getExporterConfig(): ExporterConfig {
@@ -27,5 +28,6 @@ export function getExporterConfig(): ExporterConfig {
     renderMermaid: config.get<boolean>("renderMermaid", true),
     mermaidTheme: config.get<string>("mermaidTheme", "default"),
     exportTimeout: config.get<number>("exportTimeout", 60000),
+    showLogo: config.get<boolean>("showLogo", true),
   };
 }

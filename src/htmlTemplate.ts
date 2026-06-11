@@ -1,10 +1,37 @@
 import * as fs from "fs";
 import * as path from "path";
+import { getLogoPath } from "./paths";
 
-function readAsset(relativePath: string): string {
-  const extensionRoot = path.resolve(__dirname, "..");
-  const assetPath = path.join(extensionRoot, relativePath);
+function getExtensionRoot(extensionPath?: string): string {
+  if (extensionPath) {
+    return extensionPath;
+  }
+
+  return path.resolve(__dirname, "..", "..");
+}
+
+function readAsset(relativePath: string, extensionPath?: string): string {
+  const assetPath = path.join(getExtensionRoot(extensionPath), relativePath);
   return fs.readFileSync(assetPath, "utf8");
+}
+
+function readImageAsDataUri(imagePath: string): string | undefined {
+  if (!fs.existsSync(imagePath)) {
+    return undefined;
+  }
+
+  const buffer = fs.readFileSync(imagePath);
+  const ext = path.extname(imagePath).slice(1).toLowerCase();
+  const mime =
+    ext === "png"
+      ? "image/png"
+      : ext === "jpg" || ext === "jpeg"
+        ? "image/jpeg"
+        : ext === "svg"
+          ? "image/svg+xml"
+          : "application/octet-stream";
+
+  return `data:${mime};base64,${buffer.toString("base64")}`;
 }
 
 export function buildHtmlDocument(options: {
@@ -12,17 +39,31 @@ export function buildHtmlDocument(options: {
   bodyHtml: string;
   renderMermaid: boolean;
   mermaidTheme: string;
+  extensionPath?: string;
+  showLogo?: boolean;
 }): string {
   const githubCss = readAsset(
-    path.join("node_modules", "github-markdown-css", "github-markdown.css")
+    path.join("node_modules", "github-markdown-css", "github-markdown.css"),
+    options.extensionPath
   );
   const highlightCss = readAsset(
-    path.join("node_modules", "highlight.js", "styles", "github.css")
+    path.join("node_modules", "highlight.js", "styles", "github.css"),
+    options.extensionPath
   );
   const mermaidScript = options.renderMermaid
     ? readAsset(
-        path.join("node_modules", "mermaid", "dist", "mermaid.min.js")
+        path.join("node_modules", "mermaid", "dist", "mermaid.min.js"),
+        options.extensionPath
       )
+    : "";
+
+  const logoDataUri =
+    options.showLogo !== false
+      ? readImageAsDataUri(getLogoPath(options.extensionPath))
+      : undefined;
+
+  const logoHeader = logoDataUri
+    ? `<header class="pdf-header"><img src="${logoDataUri}" alt="MD-PDF Exporter" class="pdf-logo" /></header>`
     : "";
 
   const mermaidInit = options.renderMermaid
@@ -89,6 +130,23 @@ export function buildHtmlDocument(options: {
       padding: 24px;
     }
 
+    .pdf-header {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #d0d7de;
+      page-break-after: avoid;
+    }
+
+    .pdf-logo {
+      height: 36px;
+      width: auto;
+      max-width: 180px;
+      object-fit: contain;
+    }
+
     .markdown-body {
       box-sizing: border-box;
       min-width: 200px;
@@ -139,6 +197,7 @@ export function buildHtmlDocument(options: {
 </head>
 <body>
   <div class="page markdown-body">
+    ${logoHeader}
     ${options.bodyHtml}
   </div>
   ${mermaidInit}

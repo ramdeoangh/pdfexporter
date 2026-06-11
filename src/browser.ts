@@ -3,6 +3,17 @@ import * as os from "os";
 import * as path from "path";
 
 const WINDOWS_BROWSER_CANDIDATES = [
+  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
+  "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+  "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
+  path.join(
+    process.env.LOCALAPPDATA ?? "",
+    "Google",
+    "Chrome",
+    "Application",
+    "chrome.exe"
+  ),
   path.join(
     process.env["ProgramFiles(x86)"] ?? "C:\\Program Files (x86)",
     "Microsoft",
@@ -16,20 +27,6 @@ const WINDOWS_BROWSER_CANDIDATES = [
     "Edge",
     "Application",
     "msedge.exe"
-  ),
-  path.join(
-    process.env.LOCALAPPDATA ?? "",
-    "Google",
-    "Chrome",
-    "Application",
-    "chrome.exe"
-  ),
-  path.join(
-    process.env["ProgramFiles(x86)"] ?? "C:\\Program Files (x86)",
-    "Google",
-    "Chrome",
-    "Application",
-    "chrome.exe"
   ),
   path.join(
     process.env.ProgramFiles ?? "C:\\Program Files",
@@ -81,4 +78,19 @@ export function resolveBrowserExecutable(
   }
 
   return candidatesForPlatform().find(exists);
+}
+
+export function getBrowserLaunchArgs(userDataDir: string): string[] {
+  return [
+    `--user-data-dir=${userDataDir}`,
+    "--no-sandbox",
+    "--disable-setuid-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-gpu",
+    "--disable-software-rasterizer",
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--disable-extensions",
+    "--hide-scrollbars",
+  ];
 }

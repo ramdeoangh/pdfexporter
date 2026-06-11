@@ -1,4 +1,4 @@
-# Markdown PDF Exporter
+# MD-PDF Exporter
 
 A VS Code / Cursor extension that exports Markdown files to PDF. **Mermaid diagrams and flowcharts** (including those created in Cursor) are rendered as images in the exported PDF, not as raw code blocks.
 
