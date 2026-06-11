@@ -83,6 +83,10 @@ The extension renders these locally before PDF export—no external diagram serv
 
 See [`examples/sample.md`](examples/sample.md) for a document with Mermaid flowcharts and sequence diagrams.
 
+## Support
+
+See [support.md](support.md) for troubleshooting, requirements, and how to report issues.
+
 ## License
 
 MIT

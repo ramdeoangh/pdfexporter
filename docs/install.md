@@ -23,8 +23,8 @@ The extension is already installed. Do one of:
 
 1. Restart Cursor
 2. Open your `.md` file
-3. Right-click the `.md` file → **MD-PDF Exporter** → **Export to PDF**  
-   or `Ctrl+Shift+P` → **MD-PDF Exporter: Export to PDF**
+3. Right-click the `.md` file → **MD-PDF Exporter** → **MD Preview** or **Export to PDF**  
+   or `Ctrl+Shift+P` → **MD-PDF Exporter: MD Preview** / **Export to PDF**
 
 ### Option B — Clean reinstall
 
@@ -45,8 +45,8 @@ Restart Cursor again.
 ## Export your SDD document
 
 1. Open `C:\Connectors\application\studio\runtime\docs\FACTORY-31881-AppVersion-SDD.md`
-2. Right-click the `.md` file → **MD-PDF Exporter** → **Export to PDF**  
-   or `Ctrl+Shift+P` → **MD-PDF Exporter: Export to PDF**
+2. Right-click the `.md` file → **MD-PDF Exporter** → **MD Preview** or **Export to PDF**  
+   Shortcut: `Ctrl+Shift+M` (preview), `Ctrl+Shift+E` (export)
 3. PDF saved as: `FACTORY-31881-AppVersion-SDD.pdf` in the same `docs` folder
 
 ---
