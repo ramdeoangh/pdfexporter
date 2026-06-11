@@ -6,9 +6,12 @@ import type Token from "markdown-it/lib/token.mjs";
 import type { Options } from "markdown-it";
 import hljs from "highlight.js";
 
+export type ImageSrcResolver = (src: string, markdownDir: string) => string;
+
 export interface ProcessMarkdownOptions {
   markdownPath: string;
   renderMermaid: boolean;
+  resolveImageSrc?: ImageSrcResolver;
 }
 
 function toFileUrl(filePath: string): string {
@@ -46,7 +49,8 @@ function escapeHtml(value: string): string {
 
 function createMarkdownIt(
   markdownDir: string,
-  renderMermaid: boolean
+  renderMermaid: boolean,
+  resolveImage: ImageSrcResolver
 ): MarkdownIt {
   const md = new MarkdownIt({
     html: true,
@@ -83,7 +87,7 @@ function createMarkdownIt(
     const token = tokens[idx];
     const src = token.attrGet("src");
     if (src) {
-      token.attrSet("src", resolveImageSrc(src, markdownDir));
+      token.attrSet("src", resolveImage(src, markdownDir));
     }
     return defaultImageRule(tokens, idx, options, env, self);
   };
@@ -119,6 +123,11 @@ export function processMarkdown(
   options: ProcessMarkdownOptions
 ): string {
   const markdownDir = path.dirname(options.markdownPath);
-  const md = createMarkdownIt(markdownDir, options.renderMermaid);
+  const resolveImage = options.resolveImageSrc ?? resolveImageSrc;
+  const md = createMarkdownIt(
+    markdownDir,
+    options.renderMermaid,
+    resolveImage
+  );
   return md.render(markdown);
 }

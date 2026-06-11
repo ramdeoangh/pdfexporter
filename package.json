@@ -9,6 +9,11 @@
     "type": "git",
     "url": "https://github.com/ramdeoangh/pdfexporter.git"
   },
+  "bugs": {
+    "url": "https://github.com/ramdeoangh/pdfexporter/issues"
+  },
+  "homepage": "https://github.com/ramdeoangh/pdfexporter#readme",
+  "qna": "https://github.com/ramdeoangh/pdfexporter/issues",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -27,6 +32,12 @@
   "main": "./package/dist/extension.js",
   "contributes": {
     "commands": [
+      {
+        "command": "pdfexporter.previewMarkdown",
+        "title": "MD Preview",
+        "category": "MD-PDF Exporter",
+        "icon": "$(open-preview)"
+      },
       {
         "command": "pdfexporter.exportPdf",
         "title": "Export to PDF",
@@ -57,12 +68,22 @@
       ],
       "pdfexporter.submenu": [
         {
+          "command": "pdfexporter.previewMarkdown",
+          "group": "1_preview@1"
+        },
+        {
           "command": "pdfexporter.exportPdf",
-          "group": "1_export@1"
+          "group": "2_export@1"
         }
       ]
     },
     "keybindings": [
+      {
+        "command": "pdfexporter.previewMarkdown",
+        "key": "ctrl+shift+m",
+        "mac": "cmd+shift+m",
+        "when": "editorLangId == markdown"
+      },
       {
         "command": "pdfexporter.exportPdf",
         "key": "ctrl+shift+e",
