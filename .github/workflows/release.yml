@@ -31,6 +31,7 @@ jobs:
             echo "Tag $TAG does not match package.json version $PKG_VERSION"
             exit 1
           fi
+          echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: npm ci
@@ -44,6 +45,13 @@ jobs:
       - name: Package VSIX
         run: npm run package
 
+      - name: Verify VSCE_PAT secret
+        run: |
+          if [ -z "${{ secrets.VSCE_PAT }}" ]; then
+            echo "::error::VSCE_PAT secret is not set. Add it in GitHub → Settings → Secrets → Actions"
+            exit 1
+          fi
+
       - name: Publish to VS Code Marketplace
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
@@ -52,5 +60,26 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          name: MD-PDF Exporter v${{ env.RELEASE_VERSION }}
           files: package/*.vsix
           generate_release_notes: true
+
+  sync-develop:
+    needs: publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge main into develop
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout develop
+          git pull origin develop
+          git merge origin/main -m "chore: sync develop with main after release"
+          git push origin develop

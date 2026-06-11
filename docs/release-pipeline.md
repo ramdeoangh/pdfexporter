@@ -40,7 +40,10 @@ flowchart LR
 | Workflow | Trigger | Action |
 | --- | --- | --- |
 | **CI** | PR or push to `develop` or `main` | Lint, build, package VSIX (artifact) |
-| **Release** | Push tag `v*` on `main` | Publish to Marketplace + GitHub Release |
+| **Create Release** | Manual (Actions → Run workflow) | Bump version on `main` + push tag |
+| **Release** | Push tag `v*` on `main` | Marketplace + GitHub Release + sync `develop` |
+
+**Fully automated guide:** [automated-release.md](./automated-release.md)
 
 Tags are created **only on `main`** after a release PR is merged.
 
@@ -80,47 +83,27 @@ git push origin --delete feature-right-click-menu
 
 ---
 
-## Release to Marketplace
+## Release to Marketplace (automated)
 
 When `develop` is ready for a public release:
 
 ### 1. Open PR `develop` → `main`
 
-- Base: **`main`**
-- Compare: **`develop`**
-- In this PR (or on `main` after merge), bump **`version`** in `package.json`
-- Wait for **CI** to pass
-- Merge PR
+- Base: **`main`**, compare: **`develop`**
+- Wait for **CI** to pass → merge
 
-### 2. Tag on `main`
+### 2. Run **Create Release** workflow
 
-Tag must match `package.json` (with `v` prefix):
+GitHub → **Actions** → **Create Release** → **Run workflow**
 
-```bash
-git checkout main
-git pull origin main
-git tag v0.1.4
-git push origin v0.1.4
-```
+- Branch: `main`
+- Version: e.g. `0.1.5` (no `v` prefix)
 
-### 3. Automated publish
+### 3. Everything else is automatic
 
-**Release** workflow (`.github/workflows/release.yml`):
+**Release** workflow publishes to Marketplace, creates GitHub Release, and syncs `develop`.
 
-1. Verifies tag matches `package.json`
-2. Publishes to **VS Code Marketplace** (`ramdeoangh.pdfexporter`)
-3. Creates **GitHub Release** with VSIX attached
-
-### 4. Sync `develop` with `main` (if needed)
-
-After release, merge `main` back into `develop` if versions diverged:
-
-```bash
-git checkout develop
-git pull origin develop
-git merge main
-git push origin develop
-```
+See [automated-release.md](./automated-release.md) for full details.
 
 ---
 
