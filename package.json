@@ -1,0 +1,141 @@
+{
+  "name": "pdfexporter",
+  "displayName": "Markdown PDF Exporter",
+  "description": "Export Markdown files to PDF with Mermaid diagrams and local images rendered inline.",
+  "version": "0.1.0",
+  "publisher": "ramdeoangh",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "markdown",
+    "pdf",
+    "mermaid",
+    "diagram",
+    "export",
+    "cursor"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "pdfexporter.exportPdf",
+        "title": "Markdown PDF Exporter: Export to PDF",
+        "icon": "$(export)"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "pdfexporter.exportPdf",
+          "when": "editorLangId == markdown",
+          "group": "navigation@100"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "pdfexporter.exportPdf",
+          "when": "resourceLangId == markdown",
+          "group": "navigation@100"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "pdfexporter.exportPdf",
+        "key": "ctrl+shift+e",
+        "mac": "cmd+shift+e",
+        "when": "editorLangId == markdown"
+      }
+    ],
+    "configuration": {
+      "title": "Markdown PDF Exporter",
+      "properties": {
+        "pdfexporter.outputDirectory": {
+          "type": "string",
+          "default": "",
+          "description": "Directory for exported PDFs. Empty means same folder as the Markdown file."
+        },
+        "pdfexporter.executablePath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to Chrome or Edge for PDF rendering. Auto-detected when empty."
+        },
+        "pdfexporter.pageFormat": {
+          "type": "string",
+          "enum": [
+            "A4",
+            "Letter",
+            "Legal",
+            "Tabloid"
+          ],
+          "default": "A4",
+          "description": "PDF page size."
+        },
+        "pdfexporter.marginTop": {
+          "type": "string",
+          "default": "20mm"
+        },
+        "pdfexporter.marginBottom": {
+          "type": "string",
+          "default": "20mm"
+        },
+        "pdfexporter.marginLeft": {
+          "type": "string",
+          "default": "15mm"
+        },
+        "pdfexporter.marginRight": {
+          "type": "string",
+          "default": "15mm"
+        },
+        "pdfexporter.renderMermaid": {
+          "type": "boolean",
+          "default": true,
+          "description": "Render ```mermaid code blocks as diagrams in the PDF."
+        },
+        "pdfexporter.mermaidTheme": {
+          "type": "string",
+          "enum": [
+            "default",
+            "dark",
+            "forest",
+            "neutral"
+          ],
+          "default": "default",
+          "description": "Mermaid diagram theme."
+        },
+        "pdfexporter.exportTimeout": {
+          "type": "number",
+          "default": 60000,
+          "description": "Maximum time (ms) to wait for diagram rendering before exporting."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "package": "vsce package",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "@types/node": "^22.10.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "github-markdown-css": "^5.8.1",
+    "highlight.js": "^11.10.0",
+    "markdown-it": "^14.1.0",
+    "mermaid": "^11.4.0",
+    "puppeteer-core": "^23.10.0"
+  }
+}
