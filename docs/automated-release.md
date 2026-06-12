@@ -34,9 +34,11 @@ feature-<name>  →  PR  →  develop  →  PR  →  main
 
 | Name | Value |
 | --- | --- |
-| `VSCE_PAT` | Azure DevOps PAT with **Marketplace → Manage** scope |
+| `VSCE_PAT` | *(Optional)* Azure DevOps PAT with **Marketplace → Manage** scope |
 
 Create PAT: [dev.azure.com](https://dev.azure.com) → Profile → Personal access tokens
+
+If `VSCE_PAT` is **not** set, the release still succeeds: GitHub Release is created with the VSIX attached, but Marketplace publish is skipped.
 
 ### 2. Marketplace publisher
 
@@ -128,7 +130,7 @@ The **Release** workflow runs on tag push (steps 4 above).
 
 | Problem | Fix |
 | --- | --- |
-| Release failed: `VSCE_PAT secret is not set` | Add secret in GitHub Actions settings |
+| Marketplace not updated | Add `VSCE_PAT` secret, or publish manually with `npx vsce publish` |
 | Tag does not match package.json | Tag `v0.1.5` must match `"version": "0.1.5"` |
 | Version already exists | Use a higher version in Create Release |
 | sync-develop failed | Check workflow write permissions on repo |

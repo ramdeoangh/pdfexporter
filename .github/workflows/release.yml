@@ -34,7 +34,7 @@ jobs:
           echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --no-audit --no-fund --prefer-offline
 
       - name: Lint
         run: npm run lint
@@ -45,14 +45,18 @@ jobs:
       - name: Package VSIX
         run: npm run package
 
-      - name: Verify VSCE_PAT secret
+      - name: Check Marketplace publish availability
+        id: marketplace
         run: |
-          if [ -z "${{ secrets.VSCE_PAT }}" ]; then
-            echo "::error::VSCE_PAT secret is not set. Add it in GitHub → Settings → Secrets → Actions"
-            exit 1
+          if [ -n "${{ secrets.VSCE_PAT }}" ]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::VSCE_PAT is not set — skipping Marketplace publish. GitHub Release will still be created with the VSIX."
           fi
 
       - name: Publish to VS Code Marketplace
+        if: steps.marketplace.outputs.publish == 'true'
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
         run: npx vsce publish -p "$VSCE_PAT"
