@@ -1,0 +1,64 @@
+name: Create Release
+
+# Bumps version on main, pushes commit + tag.
+# The Release workflow runs automatically when the tag is pushed.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. 0.1.5 — without v prefix)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  bump-and-tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Validate version format
+        run: |
+          VERSION="${{ inputs.version }}"
+          if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$'; then
+            echo "Invalid version: $VERSION (expected semver, e.g. 0.1.5)"
+            exit 1
+          fi
+
+      - name: Ensure version is new
+        run: |
+          CURRENT=$(node -p "require('./package.json').version")
+          NEW="${{ inputs.version }}"
+          if [ "$CURRENT" = "$NEW" ]; then
+            echo "package.json is already $NEW. Choose a higher version."
+            exit 1
+          fi
+
+      - name: Bump package.json version
+        run: npm version "${{ inputs.version }}" --no-git-tag-version
+
+      - name: Commit and push version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "chore: release v${{ inputs.version }}"
+          git push origin main
+
+      - name: Create and push tag
+        run: |
+          git tag "v${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
