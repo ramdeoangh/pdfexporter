@@ -4,8 +4,11 @@ import * as path from "path";
 import puppeteer, { Browser } from "puppeteer-core";
 import { ExporterConfig } from "./config";
 import { getBrowserLaunchArgs, resolveBrowserExecutable } from "./browser";
+import { resolveExportSettings } from "./exportSettings";
+import { parseMarkdownDocument } from "./frontMatter";
 import { buildHtmlDocument } from "./htmlTemplate";
 import { processMarkdown } from "./markdownProcessor";
+import { buildPdfHeaderFooterTemplates } from "./pdfHeaderFooter";
 
 export interface ExportPdfOptions {
   markdownPath: string;
@@ -18,28 +21,42 @@ export async function exportMarkdownToPdf(
   options: ExportPdfOptions
 ): Promise<string> {
   const markdownPath = path.resolve(options.markdownPath);
-  const markdown = fs.readFileSync(markdownPath, "utf8");
-  const title = path.basename(markdownPath, path.extname(markdownPath));
-
-  const bodyHtml = processMarkdown(markdown, {
+  const rawMarkdown = fs.readFileSync(markdownPath, "utf8");
+  const fallbackTitle = path.basename(
     markdownPath,
-    renderMermaid: options.config.renderMermaid,
+    path.extname(markdownPath)
+  );
+
+  const { content, frontMatter } = parseMarkdownDocument(rawMarkdown);
+  const settings = resolveExportSettings({
+    config: options.config,
+    frontMatter,
+    markdownPath,
+    fallbackTitle,
+  });
+
+  const bodyHtml = processMarkdown(content, {
+    markdownPath,
+    renderMermaid: settings.renderMermaid,
   });
 
   const html = buildHtmlDocument({
-    title,
+    title: settings.documentTitle,
+    author: settings.author,
+    documentDate: settings.documentDate,
     bodyHtml,
-    renderMermaid: options.config.renderMermaid,
-    mermaidTheme: options.config.mermaidTheme,
+    renderMermaid: settings.renderMermaid,
+    mermaidTheme: settings.mermaidTheme,
     extensionPath: options.extensionPath,
-    showLogo: options.config.showLogo,
+    showLogo: settings.showLogo,
+    customLogoPath: settings.customLogoPath,
   });
 
   const outputPath =
-    options.outputPath ?? resolveOutputPath(markdownPath, options.config);
+    options.outputPath ?? resolveOutputPath(markdownPath, settings);
 
   const browserExecutable = resolveBrowserExecutable(
-    options.config.executablePath
+    settings.executablePath
   );
 
   if (!browserExecutable) {
@@ -60,6 +77,8 @@ export async function exportMarkdownToPdf(
 
   fs.writeFileSync(tempHtmlPath, html, "utf8");
 
+  const headerFooter = buildPdfHeaderFooterTemplates(settings);
+
   let browser: Browser | undefined;
 
   try {
@@ -67,7 +86,7 @@ export async function exportMarkdownToPdf(
       executablePath: browserExecutable,
       headless: true,
       args: getBrowserLaunchArgs(userDataDir),
-      timeout: options.config.exportTimeout,
+      timeout: settings.exportTimeout,
     });
 
     const page = await browser.newPage();
@@ -75,11 +94,11 @@ export async function exportMarkdownToPdf(
 
     await page.goto(fileUrl, {
       waitUntil: "networkidle0",
-      timeout: options.config.exportTimeout,
+      timeout: settings.exportTimeout,
     });
 
     await page.waitForFunction("window.__mermaidReady === true", {
-      timeout: options.config.exportTimeout,
+      timeout: settings.exportTimeout,
     });
 
     await page.evaluate(async () => {
@@ -98,13 +117,16 @@ export async function exportMarkdownToPdf(
 
     await page.pdf({
       path: outputPath,
-      format: options.config.pageFormat,
+      format: settings.pageFormat,
       printBackground: true,
+      displayHeaderFooter: Boolean(headerFooter),
+      headerTemplate: headerFooter?.headerTemplate ?? "<span></span>",
+      footerTemplate: headerFooter?.footerTemplate ?? "<span></span>",
       margin: {
-        top: options.config.marginTop,
-        bottom: options.config.marginBottom,
-        left: options.config.marginLeft,
-        right: options.config.marginRight,
+        top: settings.marginTop,
+        bottom: settings.marginBottom,
+        left: settings.marginLeft,
+        right: settings.marginRight,
       },
     });
 

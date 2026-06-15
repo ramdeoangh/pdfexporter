@@ -12,6 +12,9 @@ export interface ExporterConfig {
   mermaidTheme: string;
   exportTimeout: number;
   showLogo: boolean;
+  headerFooterEnabled: boolean;
+  showPageNumbers: boolean;
+  batchRecursive: boolean;
 }
 
 export function getExporterConfig(): ExporterConfig {
@@ -22,12 +25,15 @@ export function getExporterConfig(): ExporterConfig {
     executablePath: config.get<string>("executablePath", ""),
     pageFormat: config.get<ExporterConfig["pageFormat"]>("pageFormat", "A4"),
     marginTop: config.get<string>("marginTop", "20mm"),
-    marginBottom: config.get<string>("marginBottom", "20mm"),
+    marginBottom: config.get<string>("marginBottom", "25mm"),
     marginLeft: config.get<string>("marginLeft", "15mm"),
     marginRight: config.get<string>("marginRight", "15mm"),
     renderMermaid: config.get<boolean>("renderMermaid", true),
     mermaidTheme: config.get<string>("mermaidTheme", "default"),
     exportTimeout: config.get<number>("exportTimeout", 60000),
     showLogo: config.get<boolean>("showLogo", true),
+    headerFooterEnabled: config.get<boolean>("headerFooter.enabled", true),
+    showPageNumbers: config.get<boolean>("headerFooter.showPageNumbers", true),
+    batchRecursive: config.get<boolean>("batchRecursive", false),
   };
 }
