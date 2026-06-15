@@ -36,11 +36,14 @@ function readImageAsDataUri(imagePath: string): string | undefined {
 
 export function buildHtmlDocument(options: {
   title: string;
+  author?: string;
+  documentDate?: string;
   bodyHtml: string;
   renderMermaid: boolean;
   mermaidTheme: string;
   extensionPath?: string;
   showLogo?: boolean;
+  customLogoPath?: string;
 }): string {
   const githubCss = readAsset(
     path.join("node_modules", "github-markdown-css", "github-markdown.css"),
@@ -57,14 +60,26 @@ export function buildHtmlDocument(options: {
       )
     : "";
 
-  const logoDataUri =
-    options.showLogo !== false
-      ? readImageAsDataUri(getLogoPath(options.extensionPath))
-      : undefined;
+  const logoSourcePath =
+    options.customLogoPath ??
+    (options.showLogo !== false ? getLogoPath(options.extensionPath) : undefined);
+
+  const logoDataUri = logoSourcePath
+    ? readImageAsDataUri(logoSourcePath)
+    : undefined;
 
   const logoHeader = logoDataUri
-    ? `<header class="pdf-header"><img src="${logoDataUri}" alt="MD-PDF Exporter" class="pdf-logo" /></header>`
+    ? `<header class="pdf-header"><img src="${logoDataUri}" alt="Logo" class="pdf-logo" /></header>`
     : "";
+
+  const coverBlock =
+    options.author || options.documentDate
+      ? `<section class="doc-cover">
+      <h1 class="doc-cover-title">${escapeHtml(options.title)}</h1>
+      ${options.author ? `<p class="doc-cover-meta">${escapeHtml(options.author)}</p>` : ""}
+      ${options.documentDate ? `<p class="doc-cover-meta">${escapeHtml(options.documentDate)}</p>` : ""}
+    </section>`
+      : "";
 
   const mermaidInit = options.renderMermaid
     ? `
@@ -147,6 +162,25 @@ export function buildHtmlDocument(options: {
       object-fit: contain;
     }
 
+    .doc-cover {
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #d0d7de;
+      page-break-after: avoid;
+    }
+
+    .doc-cover-title {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.2;
+    }
+
+    .doc-cover-meta {
+      margin: 4px 0 0;
+      color: #57606a;
+      font-size: 14px;
+    }
+
     .markdown-body {
       box-sizing: border-box;
       min-width: 200px;
@@ -198,6 +232,7 @@ export function buildHtmlDocument(options: {
 <body>
   <div class="page markdown-body">
     ${logoHeader}
+    ${coverBlock}
     ${options.bodyHtml}
   </div>
   ${mermaidInit}

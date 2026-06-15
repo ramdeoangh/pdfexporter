@@ -2,7 +2,7 @@
   "name": "pdfexporter",
   "displayName": "MD-PDF Exporter",
   "description": "Export Markdown files to PDF with Mermaid diagrams and local images rendered inline.",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "publisher": "ramdeoangh",
   "icon": "package/assets/img/mdexport.png",
   "repository": {
@@ -43,6 +43,12 @@
         "title": "Export to PDF",
         "category": "MD-PDF Exporter",
         "icon": "$(export)"
+      },
+      {
+        "command": "pdfexporter.exportFolder",
+        "title": "Export Folder to PDF",
+        "category": "MD-PDF Exporter",
+        "icon": "$(folder)"
       }
     ],
     "submenus": [
@@ -64,6 +70,11 @@
           "submenu": "pdfexporter.submenu",
           "when": "explorerResourceIsFolder == false && (resourceExtname == .md || resourceExtname == .markdown)",
           "group": "navigation@1"
+        },
+        {
+          "command": "pdfexporter.exportFolder",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation@2"
         }
       ],
       "pdfexporter.submenu": [
@@ -156,6 +167,21 @@
           "type": "boolean",
           "default": true,
           "description": "Show the MD-PDF Exporter logo at the top of exported PDFs."
+        },
+        "pdfexporter.headerFooter.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show header and footer in exported PDFs."
+        },
+        "pdfexporter.headerFooter.showPageNumbers": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show page numbers in the PDF footer."
+        },
+        "pdfexporter.batchRecursive": {
+          "type": "boolean",
+          "default": false,
+          "description": "When exporting a folder, include Markdown files in subfolders."
         }
       }
     }
@@ -177,6 +203,7 @@
   },
   "dependencies": {
     "github-markdown-css": "^5.8.1",
+    "gray-matter": "^4.0.3",
     "highlight.js": "^11.10.0",
     "markdown-it": "^14.1.0",
     "mermaid": "^11.4.0",

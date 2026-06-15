@@ -1,5 +1,6 @@
 import * as path from "path";
 import * as vscode from "vscode";
+import { findMarkdownFiles } from "./batchExport";
 import { getExporterConfig } from "./config";
 import { MarkdownPreviewPanel } from "./previewPanel";
 import { resolveMarkdownUri } from "./resolveMarkdownUri";
@@ -15,45 +16,72 @@ export function activate(context: vscode.ExtensionContext): void {
           return;
         }
 
+        await exportSingleFile(context, markdownUri.fsPath);
+      }
+    ),
+
+    vscode.commands.registerCommand(
+      "pdfexporter.exportFolder",
+      async (uri?: vscode.Uri) => {
+        let folderUri = uri;
+
+        if (!folderUri) {
+          const picked = await vscode.window.showOpenDialog({
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            openLabel: "Select folder to export",
+          });
+          folderUri = picked?.[0];
+        }
+
+        if (!folderUri) {
+          return;
+        }
+
         const config = getExporterConfig();
+        const markdownFiles = findMarkdownFiles(
+          folderUri.fsPath,
+          config.batchRecursive
+        );
+
+        if (markdownFiles.length === 0) {
+          vscode.window.showWarningMessage(
+            "No Markdown files found in the selected folder."
+          );
+          return;
+        }
 
         await vscode.window.withProgress(
           {
             location: vscode.ProgressLocation.Notification,
-            title: "Exporting Markdown to PDF…",
+            title: `Exporting ${markdownFiles.length} Markdown file(s) to PDF…`,
             cancellable: false,
           },
           async () => {
-            try {
-              const outputPath = await exportMarkdownToPdfViaHost({
-                markdownPath: markdownUri.fsPath,
-                config,
-                extensionPath: context.extensionPath,
-              });
+            const exported: string[] = [];
+            const failed: string[] = [];
 
-              const openAction = "Open PDF";
-              const choice = await vscode.window.showInformationMessage(
-                `PDF exported to ${path.basename(outputPath)}`,
-                openAction,
-                "Reveal in Explorer"
-              );
-
-              if (choice === openAction) {
-                await vscode.commands.executeCommand(
-                  "vscode.open",
-                  vscode.Uri.file(outputPath)
-                );
-              } else if (choice === "Reveal in Explorer") {
-                await vscode.commands.executeCommand(
-                  "revealFileInOS",
-                  vscode.Uri.file(outputPath)
-                );
+            for (const markdownPath of markdownFiles) {
+              try {
+                const outputPath = await exportMarkdownToPdfViaHost({
+                  markdownPath,
+                  config,
+                  extensionPath: context.extensionPath,
+                });
+                exported.push(outputPath);
+              } catch {
+                failed.push(path.basename(markdownPath));
               }
-            } catch (error) {
-              const message =
-                error instanceof Error ? error.message : String(error);
-              vscode.window.showErrorMessage(
-                `MD-PDF export failed: ${message}`
+            }
+
+            if (failed.length === 0) {
+              vscode.window.showInformationMessage(
+                `Exported ${exported.length} PDF file(s).`
+              );
+            } else {
+              vscode.window.showWarningMessage(
+                `Exported ${exported.length} PDF(s). Failed: ${failed.join(", ")}`
               );
             }
           }
@@ -92,4 +120,48 @@ export function activate(context: vscode.ExtensionContext): void {
 
 export function deactivate(): void {
   // no-op
+}
+
+async function exportSingleFile(
+  context: vscode.ExtensionContext,
+  markdownPath: string
+): Promise<void> {
+  const config = getExporterConfig();
+
+  await vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: "Exporting Markdown to PDF…",
+      cancellable: false,
+    },
+    async () => {
+      try {
+        const outputPath = await exportMarkdownToPdfViaHost({
+          markdownPath,
+          config,
+          extensionPath: context.extensionPath,
+        });
+
+        const openAction = "Open in Default Viewer";
+        const choice = await vscode.window.showInformationMessage(
+          `PDF exported to ${path.basename(outputPath)}`,
+          openAction,
+          "Reveal in Explorer"
+        );
+
+        if (choice === openAction) {
+          await vscode.env.openExternal(vscode.Uri.file(outputPath));
+        } else if (choice === "Reveal in Explorer") {
+          await vscode.commands.executeCommand(
+            "revealFileInOS",
+            vscode.Uri.file(outputPath)
+          );
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : String(error);
+        vscode.window.showErrorMessage(`MD-PDF export failed: ${message}`);
+      }
+    }
+  );
 }
