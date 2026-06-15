@@ -16,6 +16,9 @@ const config = {
   mermaidTheme: "default",
   exportTimeout: 60000,
   showLogo: true,
+  headerFooterEnabled: true,
+  showPageNumbers: true,
+  batchRecursive: false,
 };
 
 exportMarkdownToPdf({

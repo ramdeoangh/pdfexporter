@@ -5,10 +5,15 @@ A VS Code / Cursor extension that exports Markdown files to PDF. **Mermaid diagr
 ## Features
 
 - Export the active `.md` file to PDF from the editor or file explorer
+- **Export folder** — batch-export all Markdown files in a folder (right-click folder in Explorer)
+- **YAML front matter** — per-document title, author, date, logo, margins, and PDF options
+- **Headers, footers, and page numbers** in exported PDFs
+- **MD Preview** webview panel (right-click submenu)
 - Render ` ```mermaid ` code blocks as diagrams in the PDF
 - Embed local images referenced in Markdown (`![alt](./image.png)`)
 - Syntax-highlighted code blocks
 - GitHub-flavored Markdown styling
+- Opens the PDF in your **system viewer** after export (avoids built-in PDF extension issues)
 - Works in **VS Code** and **Cursor**
 
 ## Requirements
@@ -46,14 +51,48 @@ Then install the generated `.vsix` file:
 
 ## Usage
 
+### Export a single file
+
 1. Open a Markdown file
 2. Run one of:
-   - Command Palette → `Markdown PDF Exporter: Export to PDF`
-   - Right-click in the editor → **Markdown PDF Exporter: Export to PDF**
-   - Right-click a `.md` file in the explorer → **Markdown PDF Exporter: Export to PDF**
+   - Command Palette → `MD-PDF Exporter: Export to PDF`
+   - Right-click in the editor → **MD-PDF Exporter** → **Export to PDF**
+   - Right-click a `.md` file in the explorer → **MD-PDF Exporter** → **Export to PDF**
    - Shortcut: `Ctrl+Shift+E` (Mac: `Cmd+Shift+E`) while editing Markdown
 
-The PDF is saved next to the Markdown file by default.
+The PDF is saved next to the Markdown file by default and opens in your system PDF viewer.
+
+### MD Preview
+
+- Right-click in the editor → **MD-PDF Exporter** → **MD Preview**
+- Or `Ctrl+Shift+M` (Mac: `Cmd+Shift+M`)
+
+### Export a folder
+
+1. Right-click a folder in the Explorer → **Export Folder to PDF**
+2. All `.md` / `.markdown` files in that folder are exported (enable `pdfexporter.batchRecursive` to include subfolders)
+
+### Front matter (per-document options)
+
+Add YAML at the top of a `.md` file to override settings for that export:
+
+```yaml
+---
+title: Document title
+author: Author name
+date: 2026-06-15
+pdf:
+  showLogo: true
+  logo: ./path/to/logo.png
+  showPageNumbers: true
+  header: Custom header text
+  footer: Custom footer text
+  outputDirectory: ./output
+  pageFormat: A4
+---
+```
+
+See [`examples/front-matter-sample.md`](examples/front-matter-sample.md).
 
 ## Mermaid / Cursor diagrams
 
@@ -77,11 +116,16 @@ The extension renders these locally before PDF export—no external diagram serv
 | `pdfexporter.pageFormat` | `A4` | Page size: A4, Letter, Legal, Tabloid |
 | `pdfexporter.renderMermaid` | `true` | Render Mermaid diagrams in PDF |
 | `pdfexporter.mermaidTheme` | `default` | Mermaid theme: default, dark, forest, neutral |
+| `pdfexporter.showLogo` | `true` | Logo at the top of exported PDFs |
+| `pdfexporter.headerFooter.enabled` | `true` | Header and footer in exported PDFs |
+| `pdfexporter.headerFooter.showPageNumbers` | `true` | Page numbers in the PDF footer |
+| `pdfexporter.batchRecursive` | `false` | Include subfolders when exporting a folder |
 | `pdfexporter.exportTimeout` | `60000` | Max wait time (ms) for diagram rendering |
 
 ## Example
 
-See [`examples/sample.md`](examples/sample.md) for a document with Mermaid flowcharts and sequence diagrams.
+- [`examples/sample.md`](examples/sample.md) — Mermaid flowcharts and sequence diagrams
+- [`examples/front-matter-sample.md`](examples/front-matter-sample.md) — YAML front matter, headers, and page numbers
 
 ## Support
 

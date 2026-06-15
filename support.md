@@ -38,7 +38,16 @@ When opening an issue, please include:
 2. Right-click → **MD-PDF Exporter** → **Export to PDF**
 3. Or `Ctrl+Shift+E` (Mac: `Cmd+Shift+E`)
 
-The PDF is saved next to the Markdown file unless you set `pdfexporter.outputDirectory`.
+The PDF is saved next to the Markdown file unless you set `pdfexporter.outputDirectory`. It opens in your **system PDF viewer** (not the built-in editor tab).
+
+### Export a folder
+
+1. Right-click a folder in the Explorer → **Export Folder to PDF**
+2. Set `pdfexporter.batchRecursive` to `true` to include subfolders
+
+### Front matter
+
+Per-document YAML at the top of a `.md` file can set title, author, date, custom logo, headers, footers, and other PDF options. See `examples/front-matter-sample.md`.
 
 ---
 
@@ -135,6 +144,17 @@ Search **Installed** for: `MD-PDF Exporter` or `@installed pdfexporter`
 
 ---
 
+### PDF opens with an error in the built-in viewer (e.g. tomoki1207.pdf)
+
+The export may have succeeded. The extension opens PDFs in your **system viewer** to avoid issues with some built-in PDF extensions.
+
+**Fix:**
+
+1. Open the `.pdf` file from Explorer or your Downloads/output folder
+2. Or set your OS default PDF app and use **Reveal in File Explorer** from the success notification
+
+---
+
 ## Settings reference
 
 | Setting | Default | Description |
@@ -145,6 +165,9 @@ Search **Installed** for: `MD-PDF Exporter` or `@installed pdfexporter`
 | `pdfexporter.renderMermaid` | `true` | Render Mermaid in PDF and preview |
 | `pdfexporter.mermaidTheme` | `default` | default, dark, forest, neutral |
 | `pdfexporter.showLogo` | `true` | Logo in exported PDF |
+| `pdfexporter.headerFooter.enabled` | `true` | Header and footer in PDF |
+| `pdfexporter.headerFooter.showPageNumbers` | `true` | Page numbers in footer |
+| `pdfexporter.batchRecursive` | `false` | Subfolders when exporting a folder |
 | `pdfexporter.exportTimeout` | `60000` | Max wait for rendering (ms) |
 
 ---

@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
 import { ExporterConfig } from "./config";
+import { parseMarkdownDocument } from "./frontMatter";
 import { buildHtmlDocument } from "./htmlTemplate";
 import { processMarkdown } from "./markdownProcessor";
 
@@ -83,10 +84,11 @@ export class MarkdownPreviewPanel {
 
   private async update(): Promise<void> {
     try {
-      const markdown = fs.readFileSync(this.markdownUri.fsPath, "utf8");
+      const rawMarkdown = fs.readFileSync(this.markdownUri.fsPath, "utf8");
+      const { content } = parseMarkdownDocument(rawMarkdown);
       const webview = this.panel.webview;
 
-      const bodyHtml = processMarkdown(markdown, {
+      const bodyHtml = processMarkdown(content, {
         markdownPath: this.markdownUri.fsPath,
         renderMermaid: this.config.renderMermaid,
         resolveImageSrc: (src, dir) =>
