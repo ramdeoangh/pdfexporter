@@ -127,41 +127,46 @@ async function exportSingleFile(
   markdownPath: string
 ): Promise<void> {
   const config = getExporterConfig();
+  let outputPath: string | undefined;
 
-  await vscode.window.withProgress(
-    {
-      location: vscode.ProgressLocation.Notification,
-      title: "Exporting Markdown to PDF…",
-      cancellable: false,
-    },
-    async () => {
-      try {
-        const outputPath = await exportMarkdownToPdfViaHost({
+  try {
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: "Exporting Markdown to PDF…",
+        cancellable: false,
+      },
+      async () => {
+        outputPath = await exportMarkdownToPdfViaHost({
           markdownPath,
           config,
           extensionPath: context.extensionPath,
         });
-
-        const openAction = "Open in Default Viewer";
-        const choice = await vscode.window.showInformationMessage(
-          `PDF exported to ${path.basename(outputPath)}`,
-          openAction,
-          "Reveal in Explorer"
-        );
-
-        if (choice === openAction) {
-          await vscode.env.openExternal(vscode.Uri.file(outputPath));
-        } else if (choice === "Reveal in Explorer") {
-          await vscode.commands.executeCommand(
-            "revealFileInOS",
-            vscode.Uri.file(outputPath)
-          );
-        }
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : String(error);
-        vscode.window.showErrorMessage(`MD-PDF export failed: ${message}`);
       }
-    }
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    vscode.window.showErrorMessage(`MD-PDF export failed: ${message}`);
+    return;
+  }
+
+  if (!outputPath) {
+    return;
+  }
+
+  const openAction = "Open in Default Viewer";
+  const choice = await vscode.window.showInformationMessage(
+    `PDF exported to ${path.basename(outputPath)}`,
+    openAction,
+    "Reveal in Explorer"
   );
+
+  if (choice === openAction) {
+    await vscode.env.openExternal(vscode.Uri.file(outputPath));
+  } else if (choice === "Reveal in Explorer") {
+    await vscode.commands.executeCommand(
+      "revealFileInOS",
+      vscode.Uri.file(outputPath)
+    );
+  }
 }

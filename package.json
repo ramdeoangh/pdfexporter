@@ -2,7 +2,7 @@
   "name": "pdfexporter",
   "displayName": "MD-PDF Exporter",
   "description": "Export Markdown files to PDF with Mermaid diagrams and local images rendered inline.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "ramdeoangh",
   "icon": "package/assets/img/mdexport.png",
   "repository": {
@@ -80,10 +80,12 @@
       "pdfexporter.submenu": [
         {
           "command": "pdfexporter.previewMarkdown",
+          "when": "editorLangId == markdown || resourceExtname == .md || resourceExtname == .markdown",
           "group": "1_preview@1"
         },
         {
           "command": "pdfexporter.exportPdf",
+          "when": "editorLangId == markdown || resourceExtname == .md || resourceExtname == .markdown",
           "group": "2_export@1"
         }
       ]
