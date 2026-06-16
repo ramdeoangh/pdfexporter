@@ -11,6 +11,19 @@ export interface ResolvedExportSettings extends ExporterConfig {
   footerText: string;
 }
 
+function toOptionalString(value: unknown): string | undefined {
+  if (value == null) {
+    return undefined;
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  const text = String(value).trim();
+  return text || undefined;
+}
+
 export function resolveExportSettings(options: {
   config: ExporterConfig;
   frontMatter: DocumentFrontMatter;
@@ -21,9 +34,9 @@ export function resolveExportSettings(options: {
   const markdownDir = path.dirname(options.markdownPath);
 
   const documentTitle =
-    options.frontMatter.title?.trim() || options.fallbackTitle;
-  const author = options.frontMatter.author?.trim();
-  const documentDate = options.frontMatter.date?.trim();
+    toOptionalString(options.frontMatter.title) || options.fallbackTitle;
+  const author = toOptionalString(options.frontMatter.author);
+  const documentDate = toOptionalString(options.frontMatter.date);
 
   const customLogoPath = pdf.logo
     ? path.isAbsolute(pdf.logo)
@@ -32,9 +45,10 @@ export function resolveExportSettings(options: {
     : undefined;
 
   const headerText =
-    pdf.header?.trim() || [documentTitle, author].filter(Boolean).join(" — ");
+    toOptionalString(pdf.header) ||
+    [documentTitle, author].filter(Boolean).join(" — ");
 
-  const footerText = pdf.footer?.trim() || "";
+  const footerText = toOptionalString(pdf.footer) || "";
 
   return {
     ...options.config,

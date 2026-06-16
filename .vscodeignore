@@ -2,6 +2,7 @@ dist/**
 .vscode/**
 .vscode-test/**
 src/**
+node_modules/**
 node_modules/@types/**
 node_modules/@vscode/**
 node_modules/esbuild/**
@@ -11,3 +12,7 @@ tsconfig.json
 esbuild.mjs
 .gitignore
 **/*.map
+docs/**
+scripts/**
+examples/**
+package/*.vsix

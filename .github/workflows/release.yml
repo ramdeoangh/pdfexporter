@@ -71,19 +71,41 @@ jobs:
   sync-develop:
     needs: publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Merge main into develop
+        id: merge
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main develop
           git checkout develop
           git pull origin develop
           git merge origin/main -m "chore: sync develop with main after release"
-          git push origin develop
+          if git diff --quiet origin/develop; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "develop is already in sync with main"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open sync PR to develop
+        if: steps.merge.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/sync-develop-after-${{ github.ref_name }}
+          base: develop
+          title: "chore: sync develop with main after ${{ github.ref_name }}"
+          body: |
+            Automated sync after release tag `${{ github.ref_name }}`.
+            Merges `main` into `develop` so both branches stay aligned.
+          commit-message: "chore: sync develop with main after release"
+          delete-branch: true
