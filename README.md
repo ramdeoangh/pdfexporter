@@ -1,136 +1,158 @@
 # MD-PDF Exporter
 
-A VS Code / Cursor extension that exports Markdown files to PDF. **Mermaid diagrams and flowcharts** (including those created in Cursor) are rendered as images in the exported PDF, not as raw code blocks.
+**Export Markdown to polished PDFs — with Mermaid diagrams, images, headers, and page numbers.**
 
-## Features
+Works in **VS Code** and **Cursor**. Everything runs locally on your machine; nothing is uploaded to the cloud.
 
-- Export the active `.md` file to PDF from the editor or file explorer
-- **Export folder** — batch-export all Markdown files in a folder (right-click folder in Explorer)
-- **YAML front matter** — per-document title, author, date, logo, margins, and PDF options
-- **Headers, footers, and page numbers** in exported PDFs
-- **MD Preview** webview panel (right-click submenu)
-- Render ` ```mermaid ` code blocks as diagrams in the PDF
-- Embed local images referenced in Markdown (`![alt](./image.png)`)
-- Syntax-highlighted code blocks
-- GitHub-flavored Markdown styling
-- Opens the PDF in your **system viewer** after export (avoids built-in PDF extension issues)
-- Works in **VS Code** and **Cursor**
+[![Version](https://img.shields.io/github/v/release/ramdeoangh/pdfexporter?label=version)](https://github.com/ramdeoangh/pdfexporter/releases)
+[![License](https://img.shields.io/github/license/ramdeoangh/pdfexporter)](LICENSE)
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/ramdeoangh.pdfexporter?label=marketplace)](https://marketplace.visualstudio.com/items?itemName=ramdeoangh.pdfexporter)
 
-## Requirements
+---
 
-- **Google Chrome** or **Microsoft Edge** installed locally (used for PDF generation)
-- If auto-detection fails, set `pdfexporter.executablePath` in settings
+## Install
 
-## Install in Cursor / VS Code
+### Option 1 — VS Code Marketplace (recommended)
 
-### From source (development)
+1. Open **Extensions** (`Ctrl+Shift+X` / `Cmd+Shift+X`)
+2. Search for **MD-PDF Exporter**
+3. Click **Install**
 
-1. Clone this repository
-2. Install dependencies and build:
+Or install from the web: [marketplace.visualstudio.com/items?itemName=ramdeoangh.pdfexporter](https://marketplace.visualstudio.com/items?itemName=ramdeoangh.pdfexporter)
 
-   ```bash
-   npm install
-   npm run build
-   ```
+### Option 2 — Download VSIX (Cursor or offline)
 
-3. Press `F5` in VS Code/Cursor to launch an Extension Development Host
-4. Open a `.md` file and run **Markdown PDF Exporter: Export to PDF**
-
-### Package as VSIX
+1. Download the latest `.vsix` from [GitHub Releases](https://github.com/ramdeoangh/pdfexporter/releases)
+2. In Cursor or VS Code: **Extensions** → `...` menu → **Install from VSIX…**
+3. Select the downloaded file
+4. Run **Developer: Reload Window** from the Command Palette
 
 ```bash
+# Or install from the command line (Cursor)
+cursor --install-extension pdfexporter-0.2.1.vsix
+```
+
+### Option 3 — Build from source
+
+```bash
+git clone https://github.com/ramdeoangh/pdfexporter.git
+cd pdfexporter
 npm install
 npm run build
 npm run package
 ```
 
-Then install the generated `.vsix` file:
+Install the generated `package/pdfexporter-*.vsix` as above, or press `F5` to run in an Extension Development Host.
 
-- Cursor: Extensions panel → `...` → **Install from VSIX...**
-- VS Code: same flow in the Extensions view
+### Requirements
 
-## Usage
+| | |
+| --- | --- |
+| **Browser** | Google Chrome or Microsoft Edge (for PDF rendering) |
+| **Editor** | VS Code or Cursor `1.85.0+` |
+| **Windows tip** | Keep `node` on your PATH for reliable exports |
 
-### Export a single file
+If the browser is not auto-detected, set `pdfexporter.executablePath` in Settings.
 
-1. Open a Markdown file
-2. Run one of:
-   - Command Palette → `MD-PDF Exporter: Export to PDF`
-   - Right-click in the editor → **MD-PDF Exporter** → **Export to PDF**
-   - Right-click a `.md` file in the explorer → **MD-PDF Exporter** → **Export to PDF**
-   - Shortcut: `Ctrl+Shift+E` (Mac: `Cmd+Shift+E`) while editing Markdown
+---
 
-The PDF is saved next to the Markdown file by default and opens in your system PDF viewer.
+## Quick start
 
-### MD Preview
+**Export a single file**
 
-- Right-click in the editor → **MD-PDF Exporter** → **MD Preview**
-- Or `Ctrl+Shift+M` (Mac: `Cmd+Shift+M`)
+1. Open any `.md` file
+2. Right-click → **MD-PDF Exporter** → **Export to PDF**
+3. Your PDF opens in the system viewer next to the Markdown file
 
-### Export a folder
+| Action | Shortcut |
+| --- | --- |
+| Export to PDF | `Ctrl+Shift+E` (`Cmd+Shift+E` on Mac) |
+| MD Preview | `Ctrl+Shift+M` (`Cmd+Shift+M` on Mac) |
 
-1. Right-click a folder in the Explorer → **Export Folder to PDF**
-2. All `.md` / `.markdown` files in that folder are exported (enable `pdfexporter.batchRecursive` to include subfolders)
+**Export a whole folder** — right-click a folder in the Explorer → **Export Folder to PDF**
 
-### Front matter (per-document options)
+**Per-document options** — add YAML front matter at the top of your `.md` file (see [examples/front-matter-sample.md](examples/front-matter-sample.md))
 
-Add YAML at the top of a `.md` file to override settings for that export:
+---
+
+## Why use this?
+
+| Feature | What you get |
+| --- | --- |
+| **Mermaid & diagrams** | ` ```mermaid ` blocks render as real diagrams in the PDF |
+| **Local images** | `![alt](./image.png)` embedded from your project |
+| **MD Preview** | Live preview panel before you export |
+| **Front matter** | Title, author, date, logo, margins per document |
+| **Headers & footers** | Custom text and page numbers on every page |
+| **Batch export** | Export every `.md` file in a folder at once |
+| **Private by design** | Local browser only — no document upload |
+
+---
+
+## Front matter example
 
 ```yaml
 ---
-title: Document title
-author: Author name
+title: Architecture Review
+author: Jane Doe
 date: 2026-06-15
 pdf:
   showLogo: true
-  logo: ./path/to/logo.png
+  logo: ./assets/logo.png
+  header: "CONFIDENTIAL"
+  footer: "Acme Corp"
   showPageNumbers: true
-  header: Custom header text
-  footer: Custom footer text
-  outputDirectory: ./output
   pageFormat: A4
 ---
 ```
 
-See [`examples/front-matter-sample.md`](examples/front-matter-sample.md).
+---
 
-## Mermaid / Cursor diagrams
+## Mermaid in Cursor
 
-Cursor stores diagrams in standard Mermaid fenced code blocks:
+Cursor diagrams use standard Mermaid fenced blocks — no extra setup:
 
 ````markdown
 ```mermaid
 flowchart TD
-    A[Start] --> B[End]
+    A[Edit Markdown] --> B[Export to PDF]
+    B --> C[Share document.pdf]
 ```
 ````
 
-The extension renders these locally before PDF export—no external diagram server required.
+---
 
 ## Settings
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `pdfexporter.outputDirectory` | `""` | Output folder. Empty = same folder as the `.md` file |
-| `pdfexporter.executablePath` | `""` | Path to Chrome/Edge. Auto-detected when empty |
-| `pdfexporter.pageFormat` | `A4` | Page size: A4, Letter, Legal, Tabloid |
-| `pdfexporter.renderMermaid` | `true` | Render Mermaid diagrams in PDF |
-| `pdfexporter.mermaidTheme` | `default` | Mermaid theme: default, dark, forest, neutral |
+| `pdfexporter.outputDirectory` | `""` | Output folder (empty = same folder as the `.md` file) |
+| `pdfexporter.executablePath` | `""` | Path to Chrome/Edge |
+| `pdfexporter.pageFormat` | `A4` | A4, Letter, Legal, Tabloid |
+| `pdfexporter.renderMermaid` | `true` | Render Mermaid diagrams |
+| `pdfexporter.mermaidTheme` | `default` | default, dark, forest, neutral |
 | `pdfexporter.showLogo` | `true` | Logo at the top of exported PDFs |
-| `pdfexporter.headerFooter.enabled` | `true` | Header and footer in exported PDFs |
-| `pdfexporter.headerFooter.showPageNumbers` | `true` | Page numbers in the PDF footer |
+| `pdfexporter.headerFooter.enabled` | `true` | Header and footer in PDFs |
+| `pdfexporter.headerFooter.showPageNumbers` | `true` | Page numbers in the footer |
 | `pdfexporter.batchRecursive` | `false` | Include subfolders when exporting a folder |
-| `pdfexporter.exportTimeout` | `60000` | Max wait time (ms) for diagram rendering |
+| `pdfexporter.exportTimeout` | `60000` | Max wait (ms) for diagram rendering |
 
-## Example
+---
 
-- [`examples/sample.md`](examples/sample.md) — Mermaid flowcharts and sequence diagrams
-- [`examples/front-matter-sample.md`](examples/front-matter-sample.md) — YAML front matter, headers, and page numbers
+## Examples
+
+- [examples/sample.md](examples/sample.md) — flowcharts, sequence diagrams, tables
+- [examples/front-matter-sample.md](examples/front-matter-sample.md) — front matter, headers, page numbers
+
+---
 
 ## Support
 
-See [support.md](support.md) for troubleshooting, requirements, and how to report issues.
+- [support.md](support.md) — troubleshooting and FAQ
+- [GitHub Issues](https://github.com/ramdeoangh/pdfexporter/issues) — bugs and feature requests
+
+---
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
