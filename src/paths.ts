@@ -12,3 +12,11 @@ export function getLogoPath(extensionPath?: string): string {
   const root = extensionPath ?? path.resolve(__dirname, "..", "..");
   return path.join(root, "package", "assets", "img", "mdexport.png");
 }
+
+export function getVendorAssetPath(
+  extensionPath: string | undefined,
+  fileName: string
+): string {
+  const root = extensionPath ?? path.resolve(__dirname, "..", "..");
+  return path.join(root, "package", "assets", "vendor", fileName);
+}

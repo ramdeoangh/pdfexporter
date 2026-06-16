@@ -94,27 +94,42 @@ This automatically:
 Triggered by the new tag. It will:
 
 1. Lint, build, package VSIX
-2. Publish to **VS Code Marketplace**
+2. Publish to **VS Code Marketplace** (if `VSCE_PAT` is set)
 3. Create **GitHub Release** with VSIX attached
-4. Merge **`main`** back into **`develop`**
+4. Open a **sync PR** to merge `main` into `develop` (when branch protection blocks direct push)
 
 ---
 
-## Manual tag path (alternative)
+## Manual tag path (recommended when version is already on main)
 
-If you prefer to bump version yourself:
+Use this when `package.json` on `main` already has the release version (e.g. after merging `develop` → `main`):
+
+```bash
+git checkout main
+git pull origin main
+git tag v0.2.2
+git push origin v0.2.2
+```
+
+The **Release** workflow runs on tag push (steps above).
+
+Do **not** use **Create Release** if `package.json` is already `0.2.2` — it will reject duplicate versions.
+
+To bump version via automation instead, use **Create Release** with a higher version (e.g. `0.2.3`).
+
+---
+
+## Manual tag path (bump version yourself)
 
 ```bash
 git checkout main
 git pull origin main
 # edit package.json version
-git commit -am "chore: release v0.1.5"
+git commit -am "chore: release v0.2.2"
 git push origin main
-git tag v0.1.5
-git push origin v0.1.5
+git tag v0.2.2
+git push origin v0.2.2
 ```
-
-The **Release** workflow runs on tag push (steps 4 above).
 
 ---
 
@@ -133,7 +148,7 @@ The **Release** workflow runs on tag push (steps 4 above).
 | Marketplace not updated | Add `VSCE_PAT` secret, or publish manually with `npx vsce publish` |
 | Tag does not match package.json | Tag `v0.1.5` must match `"version": "0.1.5"` |
 | Version already exists | Use a higher version in Create Release |
-| sync-develop failed | Check workflow write permissions on repo |
+| sync-develop failed | Merge the automated sync PR into `develop`, or allow Actions to push to `develop` |
 | Marketplace publish failed | Renew PAT; confirm publisher `ramdeoangh` |
 
 ---
