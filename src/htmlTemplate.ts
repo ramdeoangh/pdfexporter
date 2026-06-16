@@ -1,17 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
-import { getLogoPath } from "./paths";
+import { getLogoPath, getVendorAssetPath } from "./paths";
 
-function getExtensionRoot(extensionPath?: string): string {
-  if (extensionPath) {
-    return extensionPath;
-  }
-
-  return path.resolve(__dirname, "..", "..");
-}
-
-function readAsset(relativePath: string, extensionPath?: string): string {
-  const assetPath = path.join(getExtensionRoot(extensionPath), relativePath);
+function readAsset(assetPath: string): string {
   return fs.readFileSync(assetPath, "utf8");
 }
 
@@ -46,18 +37,13 @@ export function buildHtmlDocument(options: {
   customLogoPath?: string;
 }): string {
   const githubCss = readAsset(
-    path.join("node_modules", "github-markdown-css", "github-markdown.css"),
-    options.extensionPath
+    getVendorAssetPath(options.extensionPath, "github-markdown.css")
   );
   const highlightCss = readAsset(
-    path.join("node_modules", "highlight.js", "styles", "github.css"),
-    options.extensionPath
+    getVendorAssetPath(options.extensionPath, "highlight-github.css")
   );
   const mermaidScript = options.renderMermaid
-    ? readAsset(
-        path.join("node_modules", "mermaid", "dist", "mermaid.min.js"),
-        options.extensionPath
-      )
+    ? readAsset(getVendorAssetPath(options.extensionPath, "mermaid.min.js"))
     : "";
 
   const logoSourcePath =
