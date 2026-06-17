@@ -46,25 +46,35 @@ export function buildHtmlDocument(options: {
     ? readAsset(getVendorAssetPath(options.extensionPath, "mermaid.min.js"))
     : "";
 
-  const logoSourcePath =
-    options.customLogoPath ??
-    (options.showLogo !== false ? getLogoPath(options.extensionPath) : undefined);
+  const brandingLogoPath =
+    options.showLogo !== false ? getLogoPath(options.extensionPath) : undefined;
 
-  const logoDataUri = logoSourcePath
-    ? readImageAsDataUri(logoSourcePath)
+  const brandingLogoDataUri = brandingLogoPath
+    ? readImageAsDataUri(brandingLogoPath)
     : undefined;
 
-  const logoHeader = logoDataUri
-    ? `<header class="pdf-header"><img src="${logoDataUri}" alt="Logo" class="pdf-logo" /></header>`
-    : "";
+  const coverLogoDataUri = options.customLogoPath
+    ? readImageAsDataUri(options.customLogoPath)
+    : undefined;
 
-  const coverBlock =
-    options.author || options.documentDate
-      ? `<section class="doc-cover">
+  const hasCover =
+    Boolean(options.author || options.documentDate || coverLogoDataUri);
+
+  const coverBlock = hasCover
+    ? `<section class="doc-cover">
+      ${coverLogoDataUri ? `<img src="${coverLogoDataUri}" alt="Document logo" class="doc-cover-logo" />` : ""}
       <h1 class="doc-cover-title">${escapeHtml(options.title)}</h1>
       ${options.author ? `<p class="doc-cover-meta">${escapeHtml(options.author)}</p>` : ""}
       ${options.documentDate ? `<p class="doc-cover-meta">${escapeHtml(options.documentDate)}</p>` : ""}
     </section>`
+    : "";
+
+  const poweredByFooter =
+    brandingLogoDataUri
+      ? `<footer class="pdf-powered-by">
+      <img src="${brandingLogoDataUri}" alt="MD-PDF Exporter" class="pdf-powered-by-logo" />
+      <span>Powered by MD-PDF Exporter</span>
+    </footer>`
       : "";
 
   const mermaidInit = options.renderMermaid
@@ -114,63 +124,113 @@ export function buildHtmlDocument(options: {
     ${highlightCss}
 
     @page {
-      margin: 0;
+      size: auto;
     }
 
-    body {
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
       margin: 0;
+      padding: 0;
       background: #ffffff;
       color: #24292f;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 11pt;
+      line-height: 1.6;
     }
 
     .page {
-      box-sizing: border-box;
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-
-    .pdf-header {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid #d0d7de;
-      page-break-after: avoid;
-    }
-
-    .pdf-logo {
-      height: 36px;
-      width: auto;
-      max-width: 180px;
-      object-fit: contain;
-    }
-
-    .doc-cover {
-      margin-bottom: 28px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid #d0d7de;
-      page-break-after: avoid;
-    }
-
-    .doc-cover-title {
-      margin: 0 0 8px;
-      font-size: 28px;
-      line-height: 1.2;
-    }
-
-    .doc-cover-meta {
-      margin: 4px 0 0;
-      color: #57606a;
-      font-size: 14px;
+      width: 100%;
+      margin: 0;
+      padding: 0;
     }
 
     .markdown-body {
-      box-sizing: border-box;
-      min-width: 200px;
+      min-width: 0 !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      font-size: 11pt;
+      line-height: 1.6;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    .markdown-body > :first-child {
+      margin-top: 0;
+    }
+
+    .markdown-body h1 {
+      font-size: 1.75em;
+      margin-top: 0;
+      margin-bottom: 0.6em;
+      padding-bottom: 0.25em;
+      border-bottom: 1px solid #d0d7de;
+      page-break-after: avoid;
+    }
+
+    .markdown-body h2 {
+      font-size: 1.4em;
+      margin-top: 1.4em;
+      margin-bottom: 0.5em;
+      padding-bottom: 0.2em;
+      border-bottom: 1px solid #d0d7de;
+      page-break-after: avoid;
+    }
+
+    .markdown-body h3,
+    .markdown-body h4 {
+      margin-top: 1.2em;
+      margin-bottom: 0.4em;
+      page-break-after: avoid;
+    }
+
+    .markdown-body p,
+    .markdown-body ul,
+    .markdown-body ol,
+    .markdown-body blockquote,
+    .markdown-body pre {
+      margin-top: 0;
+      margin-bottom: 0.75em;
+    }
+
+    .markdown-body ul,
+    .markdown-body ol {
+      padding-left: 1.5em;
+    }
+
+    .markdown-body li + li {
+      margin-top: 0.25em;
+    }
+
+    .markdown-body li > p {
+      margin-bottom: 0.35em;
+    }
+
+    .markdown-body table {
+      display: table;
+      width: 100%;
       max-width: 100%;
+      border-collapse: collapse;
+      margin: 1em 0;
+      font-size: 0.92em;
+      page-break-inside: avoid;
+    }
+
+    .markdown-body th,
+    .markdown-body td {
+      border: 1px solid #d0d7de;
+      padding: 6px 10px;
+      text-align: left;
+      vertical-align: top;
+      word-break: break-word;
+    }
+
+    .markdown-body th {
+      background: #f6f8fa;
+      font-weight: 600;
     }
 
     .markdown-body img,
@@ -179,8 +239,41 @@ export function buildHtmlDocument(options: {
       height: auto;
     }
 
+    .markdown-body code {
+      font-size: 0.9em;
+    }
+
+    .doc-cover {
+      margin-bottom: 2em;
+      padding-bottom: 1.5em;
+      border-bottom: 1px solid #d0d7de;
+      page-break-after: always;
+      text-align: center;
+    }
+
+    .doc-cover-logo {
+      height: 48px;
+      width: auto;
+      max-width: 200px;
+      object-fit: contain;
+      margin-bottom: 1em;
+    }
+
+    .doc-cover-title {
+      margin: 0 0 0.5em;
+      font-size: 2em;
+      line-height: 1.2;
+      border-bottom: none;
+    }
+
+    .doc-cover-meta {
+      margin: 0.25em 0 0;
+      color: #57606a;
+      font-size: 0.95em;
+    }
+
     .mermaid-block {
-      margin: 16px 0;
+      margin: 1em 0;
       text-align: center;
       page-break-inside: avoid;
     }
@@ -203,23 +296,37 @@ export function buildHtmlDocument(options: {
     pre.hljs {
       overflow-x: auto;
       page-break-inside: avoid;
+      font-size: 0.85em;
+      line-height: 1.45;
     }
 
-    table {
+    .pdf-powered-by {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 2.5em;
+      padding-top: 1em;
+      border-top: 1px solid #d0d7de;
+      color: #57606a;
+      font-size: 9pt;
       page-break-inside: avoid;
     }
 
-    h1, h2, h3, h4, h5, h6 {
-      page-break-after: avoid;
+    .pdf-powered-by-logo {
+      height: 20px;
+      width: auto;
+      object-fit: contain;
+      opacity: 0.85;
     }
   </style>
   ${options.renderMermaid ? `<script>${mermaidScript}</script>` : ""}
 </head>
 <body>
   <div class="page markdown-body">
-    ${logoHeader}
     ${coverBlock}
     ${options.bodyHtml}
+    ${poweredByFooter}
   </div>
   ${mermaidInit}
 </body>
