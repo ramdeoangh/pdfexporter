@@ -286,22 +286,26 @@ export function buildHtmlDocument(options: {
       width: 100%;
     }
 
-    .mermaid-page-break {
-      page-break-before: always;
-      break-before: page;
+    /* Keep section headings with the diagram that follows them. */
+    .markdown-body h2:has(+ h3 + .mermaid-block),
+    .markdown-body h2:has(+ .mermaid-block) {
+      page-break-after: avoid;
+      break-after: avoid-page;
     }
 
     .markdown-body h3:has(+ .mermaid-block) {
-      page-break-before: always;
-      break-before: page;
       page-break-after: avoid;
       break-after: avoid-page;
     }
 
     .markdown-body h3 + .mermaid-block {
       margin-top: 0.35em;
-      page-break-before: avoid;
-      break-before: avoid-page;
+    }
+
+    .diagram-section {
+      margin: 1em 0 1.75em;
+      page-break-inside: avoid;
+      break-inside: avoid-page;
     }
 
     .mermaid-scaled-wrap {

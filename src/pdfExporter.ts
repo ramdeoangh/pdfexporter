@@ -12,6 +12,7 @@ import { buildPdfHeaderFooterTemplates } from "./pdfHeaderFooter";
 import {
   fitMermaidDiagramsForPrint,
   getPrintableAreaPx,
+  wrapDiagramSectionsForPrint,
 } from "./printLayout";
 
 export interface ExportPdfOptions {
@@ -126,6 +127,7 @@ export async function exportMarkdownToPdf(
       );
     });
 
+    await page.evaluate(wrapDiagramSectionsForPrint);
     await page.evaluate(fitMermaidDiagramsForPrint, printableArea.widthPx, printableArea.heightPx);
 
     // Allow scaled diagram layout to settle before print.

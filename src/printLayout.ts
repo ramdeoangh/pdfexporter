@@ -62,6 +62,36 @@ export function getPrintableAreaPx(settings: {
 }
 
 /** Runs in the browser before page.pdf(). */
+export function wrapDiagramSectionsForPrint(): void {
+  document.querySelectorAll(".mermaid-block").forEach((block) => {
+    const element = block as HTMLElement;
+    if (element.closest(".diagram-section")) {
+      return;
+    }
+
+    const heading = element.previousElementSibling;
+    if (!heading || heading.tagName !== "H3") {
+      return;
+    }
+
+    const section = document.createElement("div");
+    section.className = "diagram-section";
+    heading.parentElement?.insertBefore(section, heading);
+
+    const sectionHeading = heading.previousElementSibling;
+    if (
+      sectionHeading?.tagName === "H2" &&
+      sectionHeading.nextElementSibling === heading
+    ) {
+      section.appendChild(sectionHeading);
+    }
+
+    section.appendChild(heading);
+    section.appendChild(element);
+  });
+}
+
+/** Runs in the browser before page.pdf(). */
 export function fitMermaidDiagramsForPrint(
   maxWidthPx: number,
   maxHeightPx: number
