@@ -273,14 +273,58 @@ export function buildHtmlDocument(options: {
     }
 
     .mermaid-block {
-      margin: 1em 0;
+      margin: 1.25em 0 1.75em;
+      padding: 0;
       text-align: center;
+      clear: both;
       page-break-inside: avoid;
+      break-inside: avoid-page;
+    }
+
+    .mermaid-print-block {
+      display: block;
+      width: 100%;
+    }
+
+    .mermaid-page-break {
+      page-break-before: always;
+      break-before: page;
+    }
+
+    .markdown-body h3:has(+ .mermaid-block) {
+      page-break-before: always;
+      break-before: page;
+      page-break-after: avoid;
+      break-after: avoid-page;
+    }
+
+    .markdown-body h3 + .mermaid-block {
+      margin-top: 0.35em;
+      page-break-before: avoid;
+      break-before: avoid-page;
+    }
+
+    .mermaid-scaled-wrap {
+      display: block;
+      margin: 0 auto;
+      overflow: hidden;
+      page-break-inside: avoid;
+      break-inside: avoid-page;
+    }
+
+    .mermaid-block pre.mermaid {
+      margin: 0;
+      padding: 0;
+      border: none;
+      background: transparent;
+      overflow: visible;
     }
 
     .mermaid-block svg {
-      display: inline-block;
+      display: block;
+      margin: 0 auto;
       max-width: 100%;
+      height: auto;
     }
 
     .mermaid-error {

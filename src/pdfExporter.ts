@@ -9,6 +9,10 @@ import { parseMarkdownDocument } from "./frontMatter";
 import { buildHtmlDocument } from "./htmlTemplate";
 import { processMarkdown } from "./markdownProcessor";
 import { buildPdfHeaderFooterTemplates } from "./pdfHeaderFooter";
+import {
+  fitMermaidDiagramsForPrint,
+  getPrintableAreaPx,
+} from "./printLayout";
 
 export interface ExportPdfOptions {
   markdownPath: string;
@@ -90,6 +94,13 @@ export async function exportMarkdownToPdf(
     });
 
     const page = await browser.newPage();
+    const printableArea = getPrintableAreaPx(settings);
+
+    await page.setViewport({
+      width: printableArea.widthPx,
+      height: Math.max(printableArea.heightPx * 3, 2400),
+    });
+
     const fileUrl = toFileUrl(tempHtmlPath);
 
     await page.goto(fileUrl, {
@@ -114,6 +125,11 @@ export async function exportMarkdownToPdf(
         )
       );
     });
+
+    await page.evaluate(fitMermaidDiagramsForPrint, printableArea.widthPx, printableArea.heightPx);
+
+    // Allow scaled diagram layout to settle before print.
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     await page.pdf({
       path: outputPath,
