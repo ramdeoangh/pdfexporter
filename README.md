@@ -131,7 +131,7 @@ flowchart TD
 | `pdfexporter.pageFormat` | `A4` | A4, Letter, Legal, Tabloid |
 | `pdfexporter.renderMermaid` | `true` | Render Mermaid diagrams |
 | `pdfexporter.mermaidTheme` | `default` | default, dark, forest, neutral |
-| `pdfexporter.showLogo` | `true` | Logo at the top of exported PDFs |
+| `pdfexporter.showLogo` | `true` | “Powered by MD-PDF Exporter” branding at end of PDF |
 | `pdfexporter.headerFooter.enabled` | `true` | Header and footer in PDFs |
 | `pdfexporter.headerFooter.showPageNumbers` | `true` | Page numbers in the footer |
 | `pdfexporter.batchRecursive` | `false` | Include subfolders when exporting a folder |

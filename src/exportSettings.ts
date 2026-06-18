@@ -44,9 +44,7 @@ export function resolveExportSettings(options: {
       : path.resolve(markdownDir, pdf.logo)
     : undefined;
 
-  const headerText =
-    toOptionalString(pdf.header) ||
-    [documentTitle, author].filter(Boolean).join(" — ");
+  const headerText = toOptionalString(pdf.header) ?? "";
 
   const footerText = toOptionalString(pdf.footer) || "";
 
