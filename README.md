@@ -29,7 +29,7 @@ Or install from the web: [marketplace.visualstudio.com/items?itemName=ramdeoangh
 
 ```bash
 # Or install from the command line (Cursor)
-cursor --install-extension pdfexporter-0.2.4.vsix
+cursor --install-extension pdfexporter-0.2.5.vsix
 ```
 
 ### Option 3 — Build from source

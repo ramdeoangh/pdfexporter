@@ -171,11 +171,13 @@ Search **Installed** for: `MD-PDF Exporter` or `@installed pdfexporter`
 
 ### PDF opens with an error in the built-in viewer (e.g. tomoki1207.pdf)
 
-The export may have succeeded. The extension opens PDFs in your **system viewer** to avoid issues with some built-in PDF extensions.
+Error such as `Requesting object that isn't resolved yet pattern_p3_1`.
 
-**Fix:**
+The PDF is valid; the viewer is not. That extension bundles PDF.js 2.10 (2021), which fails on color emoji (✅, ⏳, …) used on more than one page. Since **0.2.5** the exporter draws emoji as images, so new exports open without this error. Re-export PDFs made with older versions.
 
-1. Open the `.pdf` file from Explorer or your Downloads/output folder
+If another PDF still fails in that viewer:
+
+1. Open the `.pdf` from Explorer in Edge, Chrome or Acrobat (the export notification has **Open in Default Viewer**)
 2. Or set your OS default PDF app and use **Reveal in File Explorer** from the success notification
 
 ---

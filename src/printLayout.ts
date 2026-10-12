@@ -61,6 +61,117 @@ export function getPrintableAreaPx(settings: {
   };
 }
 
+/**
+ * Runs in the browser before page.pdf().
+ *
+ * Chrome prints color emoji as Type3 fonts filled with gradient patterns.
+ * PDF.js 2.x viewers (for example the tomoki1207 VS Code PDF extension) cache
+ * such a font across pages but not its patterns, and fail with "Requesting
+ * object that isn't resolved yet pattern_…" when an emoji appears on a second
+ * page. Each emoji in HTML text is therefore drawn as an image; SVG text,
+ * which cannot hold images, switches to monochrome emoji glyphs instead.
+ */
+export function rasterizeEmojiForPrint(): void {
+  const emojiPattern =
+    /\p{Regional_Indicator}{2}|[#*0-9]️?⃣|(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}️)(?:\p{Emoji_Modifier}|️|‍(?:\p{Emoji_Presentation}|\p{Extended_Pictographic}️?))*/gu;
+  // Pixels per CSS pixel, so emoji stay sharp when the PDF is zoomed or printed.
+  const scale = 4;
+
+  const root = document.querySelector(".markdown-body");
+  if (!root) {
+    return;
+  }
+
+  const glyphs = new Map<
+    string,
+    { src: string; width: number; height: number; descent: number }
+  >();
+
+  function drawGlyph(text: string, style: CSSStyleDeclaration) {
+    const font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    const key = `${text}|${font}|${style.color}`;
+    const cached = glyphs.get(key);
+    if (cached) {
+      return cached;
+    }
+
+    const canvas = document.createElement("canvas");
+    let context = canvas.getContext("2d");
+    if (!context) {
+      return undefined;
+    }
+
+    context.font = font;
+    const metrics = context.measureText(text);
+    const fontSize = parseFloat(style.fontSize) || 16;
+    const ascent = metrics.fontBoundingBoxAscent || fontSize;
+    const descent = metrics.fontBoundingBoxDescent || fontSize * 0.25;
+    const width = Math.max(1, metrics.width);
+    const height = ascent + descent;
+
+    canvas.width = Math.ceil(width * scale);
+    canvas.height = Math.ceil(height * scale);
+    // Resizing a canvas resets its state.
+    context = canvas.getContext("2d");
+    if (!context) {
+      return undefined;
+    }
+    context.scale(scale, scale);
+    context.font = font;
+    context.fillStyle = style.color;
+    context.fillText(text, 0, ascent);
+
+    const glyph = { src: canvas.toDataURL("image/png"), width, height, descent };
+    glyphs.set(key, glyph);
+    return glyph;
+  }
+
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const textNodes: Text[] = [];
+  while (walker.nextNode()) {
+    textNodes.push(walker.currentNode as Text);
+  }
+
+  for (const node of textNodes) {
+    const parent = node.parentElement;
+    const matches = Array.from(node.data.matchAll(emojiPattern));
+    if (!parent || matches.length === 0) {
+      continue;
+    }
+
+    if (parent instanceof SVGElement) {
+      parent.style.setProperty("font-variant-emoji", "text");
+      continue;
+    }
+
+    const style = getComputedStyle(parent);
+    const fragment = document.createDocumentFragment();
+    let last = 0;
+
+    for (const match of matches) {
+      const index = match.index ?? 0;
+      const glyph = drawGlyph(match[0], style);
+      if (!glyph) {
+        continue;
+      }
+
+      fragment.append(node.data.slice(last, index));
+      const image = document.createElement("img");
+      image.className = "emoji-glyph";
+      image.src = glyph.src;
+      image.alt = match[0];
+      image.style.width = `${glyph.width}px`;
+      image.style.height = `${glyph.height}px`;
+      image.style.verticalAlign = `-${glyph.descent}px`;
+      fragment.append(image);
+      last = index + match[0].length;
+    }
+
+    fragment.append(node.data.slice(last));
+    node.replaceWith(fragment);
+  }
+}
+
 /** Runs in the browser before page.pdf(). */
 export function wrapDiagramSectionsForPrint(): void {
   document.querySelectorAll(".mermaid-block").forEach((block) => {

@@ -14,6 +14,7 @@ import {
   applyPrintBreakRules,
   fitMermaidDiagramsForPrint,
   getPrintableAreaPx,
+  rasterizeEmojiForPrint,
   wrapDiagramSectionsForPrint,
 } from "./printLayout";
 
@@ -137,6 +138,8 @@ export async function exportMarkdownToPdf(
           "Increase pdfexporter.exportTimeout for very large diagrams."
       );
     }
+
+    await page.evaluate(rasterizeEmojiForPrint);
 
     await page.evaluate(async (imageTimeoutMs: number) => {
       const images = Array.from(document.images);

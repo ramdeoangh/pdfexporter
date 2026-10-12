@@ -296,6 +296,15 @@ export function buildHtmlDocument(options: {
       break-inside: avoid;
     }
 
+    /* Emoji drawn as images by rasterizeEmojiForPrint: sized inline, sit in text. */
+    .markdown-body img.emoji-glyph {
+      display: inline;
+      max-width: none;
+      max-height: none;
+      margin: 0;
+      background: transparent;
+    }
+
     .markdown-body code {
       font-size: 0.9em;
     }

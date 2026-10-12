@@ -1,6 +1,12 @@
 # Changelog
 
+## 0.2.5
+
+- PDFs with color emoji (✅, ⏳, …) no longer fail in PDF.js 2.x viewers such as the tomoki1207 VS Code PDF extension (`Requesting object that isn't resolved yet pattern_…`). Emoji in text, tables, code and diagram labels are drawn as images, keeping their color; emoji in SVG diagram text use monochrome glyphs.
+
 ## 0.2.4
+
+Not published on its own; these changes ship in 0.2.5.
 
 ### Export reliability
 
