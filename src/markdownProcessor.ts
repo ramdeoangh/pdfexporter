@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
+import { pathToFileURL } from "url";
 import MarkdownIt from "markdown-it";
 import type Renderer from "markdown-it/lib/renderer.mjs";
 import type Token from "markdown-it/lib/token.mjs";
@@ -14,29 +15,54 @@ export interface ProcessMarkdownOptions {
   resolveImageSrc?: ImageSrcResolver;
 }
 
-function toFileUrl(filePath: string): string {
-  const resolved = path.resolve(filePath);
-  const normalized = resolved.replace(/\\/g, "/");
-  if (/^[a-zA-Z]:\//.test(normalized)) {
-    return `file:///${encodeURI(normalized)}`;
+/**
+ * markdown-it percent-encodes link targets (`my chart.png` -> `my%20chart.png`),
+ * so try the decoded path first and fall back to the literal one.
+ */
+export function resolveLocalImagePath(
+  src: string,
+  markdownDir: string
+): string | undefined {
+  if (!src || /^(data:|https?:|file:|vscode-)/i.test(src)) {
+    return undefined;
   }
-  return `file://${encodeURI(normalized)}`;
+
+  const withoutQuery = src.replace(/[?#].*$/, "");
+  let decoded = withoutQuery;
+  try {
+    decoded = decodeURI(withoutQuery);
+  } catch {
+    // malformed escape sequence; use as written
+  }
+
+  for (const candidate of [decoded, withoutQuery]) {
+    const absolutePath = path.isAbsolute(candidate)
+      ? candidate
+      : path.resolve(markdownDir, candidate);
+    if (fs.existsSync(absolutePath)) {
+      return absolutePath;
+    }
+  }
+
+  return undefined;
 }
 
 function resolveImageSrc(src: string, markdownDir: string): string {
-  if (!src || src.startsWith("data:") || /^https?:\/\//i.test(src)) {
-    return src;
-  }
+  const absolutePath = resolveLocalImagePath(src, markdownDir);
+  return absolutePath ? pathToFileURL(absolutePath).href : src;
+}
 
-  const absolutePath = path.isAbsolute(src)
-    ? src
-    : path.resolve(markdownDir, src);
-
-  if (!fs.existsSync(absolutePath)) {
-    return src;
-  }
-
-  return toFileUrl(absolutePath);
+/** Rewrites `src` of `<img>` tags written as raw HTML inside the Markdown. */
+function resolveHtmlImageSources(
+  html: string,
+  markdownDir: string,
+  resolveImage: ImageSrcResolver
+): string {
+  return html.replace(
+    /(<img\b[^>]*?\ssrc\s*=\s*)(["'])(.*?)\2/gi,
+    (_match, prefix: string, quote: string, src: string) =>
+      `${prefix}${quote}${resolveImage(src, markdownDir)}${quote}`
+  );
 }
 
 function escapeHtml(value: string): string {
@@ -91,6 +117,18 @@ function createMarkdownIt(
     }
     return defaultImageRule(tokens, idx, options, env, self);
   };
+
+  for (const rule of ["html_block", "html_inline"] as const) {
+    const defaultHtmlRule = md.renderer.rules[rule];
+    md.renderer.rules[rule] = (tokens, idx, options, env, self) =>
+      resolveHtmlImageSources(
+        defaultHtmlRule
+          ? defaultHtmlRule(tokens, idx, options, env, self)
+          : tokens[idx].content,
+        markdownDir,
+        resolveImage
+      );
+  }
 
   const defaultFenceRule =
     md.renderer.rules.fence ??
