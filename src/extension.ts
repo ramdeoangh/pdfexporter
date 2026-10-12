@@ -6,8 +6,13 @@ import { MarkdownPreviewPanel } from "./previewPanel";
 import { resolveMarkdownUri } from "./resolveMarkdownUri";
 import { exportMarkdownToPdfViaHost } from "./subprocessExport";
 
+let log: vscode.OutputChannel;
+
 export function activate(context: vscode.ExtensionContext): void {
+  log = vscode.window.createOutputChannel("MD-PDF Exporter");
+
   context.subscriptions.push(
+    log,
     vscode.commands.registerCommand(
       "pdfexporter.exportPdf",
       async (uri?: vscode.Uri) => {
@@ -64,14 +69,16 @@ export function activate(context: vscode.ExtensionContext): void {
 
             for (const markdownPath of markdownFiles) {
               try {
+                await saveIfDirty(markdownPath);
                 const outputPath = await exportMarkdownToPdfViaHost({
                   markdownPath,
                   config,
                   extensionPath: context.extensionPath,
                 });
                 exported.push(outputPath);
-              } catch {
+              } catch (error) {
                 failed.push(path.basename(markdownPath));
+                logError(markdownPath, error);
               }
             }
 
@@ -80,7 +87,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 `Exported ${exported.length} PDF file(s).`
               );
             } else {
-              vscode.window.showWarningMessage(
+              void showErrorWithLog(
                 `Exported ${exported.length} PDF(s). Failed: ${failed.join(", ")}`
               );
             }
@@ -130,6 +137,9 @@ async function exportSingleFile(
   let outputPath: string | undefined;
 
   try {
+    // The exporter reads the file from disk; unsaved edits would be missing.
+    await saveIfDirty(markdownPath);
+
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
@@ -145,8 +155,8 @@ async function exportSingleFile(
       }
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    vscode.window.showErrorMessage(`MD-PDF export failed: ${message}`);
+    logError(markdownPath, error);
+    void showErrorWithLog(`MD-PDF export failed: ${errorMessage(error)}`);
     return;
   }
 
@@ -168,5 +178,35 @@ async function exportSingleFile(
       "revealFileInOS",
       vscode.Uri.file(outputPath)
     );
+  }
+}
+
+async function saveIfDirty(markdownPath: string): Promise<void> {
+  const document = vscode.workspace.textDocuments.find(
+    (doc) => doc.uri.scheme === "file" && doc.uri.fsPath === markdownPath
+  );
+
+  if (document?.isDirty) {
+    await document.save();
+  }
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function logError(markdownPath: string, error: unknown): void {
+  log.appendLine(`[${new Date().toISOString()}] Export failed: ${markdownPath}`);
+  log.appendLine(
+    error instanceof Error && error.stack ? error.stack : errorMessage(error)
+  );
+  log.appendLine("");
+}
+
+async function showErrorWithLog(message: string): Promise<void> {
+  const showLog = "Show Log";
+  const choice = await vscode.window.showErrorMessage(message, showLog);
+  if (choice === showLog) {
+    log.show(true);
   }
 }

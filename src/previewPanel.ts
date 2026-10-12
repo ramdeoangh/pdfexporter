@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import { ExporterConfig } from "./config";
 import { parseMarkdownDocument } from "./frontMatter";
 import { buildHtmlDocument } from "./htmlTemplate";
-import { processMarkdown } from "./markdownProcessor";
+import { processMarkdown, resolveLocalImagePath } from "./markdownProcessor";
 
 export class MarkdownPreviewPanel {
   public static readonly viewType = "pdfexporter.mdPreview";
@@ -123,15 +123,8 @@ export class MarkdownPreviewPanel {
     markdownDir: string,
     webview: vscode.Webview
   ): string {
-    if (!src || src.startsWith("data:") || /^https?:\/\//i.test(src)) {
-      return src;
-    }
-
-    const absolutePath = path.isAbsolute(src)
-      ? src
-      : path.resolve(markdownDir, src);
-
-    if (!fs.existsSync(absolutePath)) {
+    const absolutePath = resolveLocalImagePath(src, markdownDir);
+    if (!absolutePath) {
       return src;
     }
 

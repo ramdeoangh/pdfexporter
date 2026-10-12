@@ -56,12 +56,37 @@ Per-document YAML at the top of a `.md` file can set title, author, date, custom
 | Requirement | Details |
 | --- | --- |
 | **Chrome or Edge** | Required for PDF export (local browser, not uploaded anywhere) |
-| **Node.js on PATH** | Recommended on Windows for reliable PDF export (`node --version`) |
 | **VS Code / Cursor** | Version `1.85.0` or newer |
+
+Node.js is **not** required. Since 0.2.4, exports run on the editor's own runtime.
 
 ---
 
 ## Troubleshooting
+
+When an export fails, click **Show Log** on the error notification (or open the **Output** panel → **MD-PDF Exporter**) for the full error. Include it when you open an issue.
+
+---
+
+### "Cannot write file.pdf: the file is open in another program"
+
+The previous PDF is still open in a viewer that locks it (for example Adobe Acrobat or Reader).
+
+**Fix:** close the PDF and export again, or set `pdfexporter.outputDirectory` to another folder.
+
+---
+
+### Mermaid diagram shows "Mermaid diagram could not be rendered"
+
+The diagram has a syntax error. The red box shows Mermaid's error message and the diagram source; fix the line it points to and export again. Other diagrams in the document still render.
+
+---
+
+### Remote images (`https://…`) are missing
+
+Images that do not load within 15 seconds (for example blocked by a proxy or VPN) are skipped so the export still completes. Download the image next to the `.md` file and use a relative path instead.
+
+---
 
 ### PDF export failed: "Failed to launch the browser process"
 
@@ -159,7 +184,7 @@ The export may have succeeded. The extension opens PDFs in your **system viewer*
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `pdfexporter.outputDirectory` | `""` | PDF output folder (empty = same folder as `.md`) |
+| `pdfexporter.outputDirectory` | `""` | PDF output folder (empty = same folder as `.md`; relative paths start from the `.md` file's folder) |
 | `pdfexporter.executablePath` | `""` | Path to Chrome/Edge |
 | `pdfexporter.pageFormat` | `A4` | A4, Letter, Legal, Tabloid |
 | `pdfexporter.renderMermaid` | `true` | Render Mermaid in PDF and preview |

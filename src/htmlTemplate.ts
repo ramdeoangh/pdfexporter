@@ -77,37 +77,77 @@ export function buildHtmlDocument(options: {
     </footer>`
       : "";
 
+  // __mermaidReady is set in `finally` so the exporter never waits out the full
+  // timeout because of one bad diagram or a script that failed to load.
   const mermaidInit = options.renderMermaid
     ? `
       <script>
         (async function () {
-          const blocks = Array.from(document.querySelectorAll(".mermaid"));
-          if (!blocks.length) {
-            window.__mermaidReady = true;
-            return;
+          function showError(block, source, error) {
+            const box = document.createElement("div");
+            box.className = "mermaid-error";
+            const title = document.createElement("strong");
+            title.textContent = "Mermaid diagram could not be rendered";
+            const detail = document.createElement("div");
+            detail.className = "mermaid-error-detail";
+            detail.textContent = String((error && error.message) || error || "Unknown error");
+            const code = document.createElement("pre");
+            code.textContent = source;
+            box.append(title, detail, code);
+            block.replaceWith(box);
           }
 
-          mermaid.initialize({
-            startOnLoad: false,
-            theme: ${JSON.stringify(options.mermaidTheme)},
-            securityLevel: "loose",
-            flowchart: { htmlLabels: true, useMaxWidth: true },
-            sequence: { useMaxWidth: true },
-          });
+          const blocks = Array.from(document.querySelectorAll("pre.mermaid"));
+          const sources = new Map(blocks.map((block) => [block, block.textContent || ""]));
 
           try {
-            await mermaid.run({ nodes: blocks });
-          } catch (error) {
-            console.error("Mermaid render failed", error);
-            blocks.forEach((block) => {
-              if (!block.querySelector("svg")) {
-                block.innerHTML =
-                  '<pre class="mermaid-error">Failed to render diagram</pre>';
+            if (!blocks.length) {
+              return;
+            }
+
+            if (typeof mermaid === "undefined") {
+              blocks.forEach((block) =>
+                showError(block, sources.get(block), "Mermaid library failed to load")
+              );
+              return;
+            }
+
+            mermaid.initialize({
+              startOnLoad: false,
+              theme: ${JSON.stringify(options.mermaidTheme)},
+              securityLevel: "loose",
+              flowchart: { htmlLabels: true, useMaxWidth: true },
+              sequence: { useMaxWidth: true },
+            });
+
+            const valid = [];
+            for (const block of blocks) {
+              try {
+                await mermaid.parse(sources.get(block));
+                valid.push(block);
+              } catch (error) {
+                showError(block, sources.get(block), error);
+              }
+            }
+
+            if (valid.length) {
+              try {
+                await mermaid.run({ nodes: valid, suppressErrors: true });
+              } catch (error) {
+                console.error("Mermaid render failed", error);
+              }
+            }
+
+            valid.forEach((block) => {
+              if (block.isConnected && !block.querySelector("svg")) {
+                showError(block, sources.get(block), "Diagram did not render");
               }
             });
+          } catch (error) {
+            console.error("Mermaid setup failed", error);
+          } finally {
+            window.__mermaidReady = true;
           }
-
-          window.__mermaidReady = true;
         })();
       </script>
     `
@@ -209,6 +249,8 @@ export function buildHtmlDocument(options: {
       margin-bottom: 0.35em;
     }
 
+    /* Long tables may span pages (rows stay whole, header repeats);
+       applyPrintBreakRules keeps short ones together. */
     .markdown-body table {
       display: table;
       width: 100%;
@@ -216,6 +258,14 @@ export function buildHtmlDocument(options: {
       border-collapse: collapse;
       margin: 1em 0;
       font-size: 0.92em;
+    }
+
+    .markdown-body thead {
+      display: table-header-group;
+    }
+
+    .markdown-body tr {
+      break-inside: avoid;
       page-break-inside: avoid;
     }
 
@@ -239,6 +289,13 @@ export function buildHtmlDocument(options: {
       height: auto;
     }
 
+    /* An image is one unbreakable box: cap it at a page so it is not sliced. */
+    .markdown-body img {
+      max-height: var(--print-max-height, 240mm);
+      object-fit: contain;
+      break-inside: avoid;
+    }
+
     .markdown-body code {
       font-size: 0.9em;
     }
@@ -251,7 +308,7 @@ export function buildHtmlDocument(options: {
       text-align: center;
     }
 
-    .doc-cover-logo {
+    .markdown-body img.doc-cover-logo {
       height: 48px;
       width: auto;
       max-width: 200px;
@@ -278,7 +335,7 @@ export function buildHtmlDocument(options: {
       text-align: center;
       clear: both;
       page-break-inside: avoid;
-      break-inside: avoid-page;
+      break-inside: avoid;
     }
 
     .mermaid-print-block {
@@ -305,15 +362,7 @@ export function buildHtmlDocument(options: {
     .diagram-section {
       margin: 1em 0 1.75em;
       page-break-inside: avoid;
-      break-inside: avoid-page;
-    }
-
-    .mermaid-scaled-wrap {
-      display: block;
-      margin: 0 auto;
-      overflow: hidden;
-      page-break-inside: avoid;
-      break-inside: avoid-page;
+      break-inside: avoid;
     }
 
     .mermaid-block pre.mermaid {
@@ -337,15 +386,37 @@ export function buildHtmlDocument(options: {
       border: 1px solid #ff818266;
       padding: 12px;
       border-radius: 6px;
+      margin: 1em 0;
       text-align: left;
       white-space: pre-wrap;
+      break-inside: avoid;
+    }
+
+    .mermaid-error-detail {
+      margin: 0.35em 0 0.6em;
+      font-size: 0.9em;
+    }
+
+    .markdown-body .mermaid-error pre {
+      margin: 0;
+      color: #24292f;
+      font-size: 0.8em;
     }
 
     pre.hljs {
       overflow-x: auto;
-      page-break-inside: avoid;
       font-size: 0.85em;
       line-height: 1.45;
+    }
+
+    /* Paper cannot scroll: wrap long code lines instead of clipping them. */
+    @media print {
+      .markdown-body pre,
+      .markdown-body pre code {
+        white-space: pre-wrap !important;
+        overflow-wrap: anywhere;
+        overflow: visible !important;
+      }
     }
 
     .pdf-powered-by {
@@ -361,7 +432,8 @@ export function buildHtmlDocument(options: {
       page-break-inside: avoid;
     }
 
-    .pdf-powered-by-logo {
+    /* Needs .markdown-body img specificity, or the logo renders full width. */
+    .markdown-body img.pdf-powered-by-logo {
       height: 20px;
       width: auto;
       object-fit: contain;

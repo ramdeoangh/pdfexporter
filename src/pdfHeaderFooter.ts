@@ -17,8 +17,12 @@ export function buildPdfHeaderFooterTemplates(
 
   const header = escapeTemplateText(settings.headerText);
 
+  // Line header/footer text up with the body text's left and right edges.
+  const padding = `padding:0 ${escapeTemplateText(settings.marginRight)} 0 ${escapeTemplateText(settings.marginLeft)};`;
+  const box = `box-sizing:border-box; width:100%; ${padding}`;
+
   const headerTemplate = header
-    ? `<div style="font-size:8px; width:100%; padding:0 15mm; color:#57606a;
+    ? `<div style="font-size:8px; ${box} color:#57606a;
       display:flex; justify-content:center; align-items:center;">
       <span>${header}</span>
     </div>`
@@ -31,7 +35,7 @@ export function buildPdfHeaderFooterTemplates(
     : "";
 
   const footerTemplate = `
-    <div style="font-size:8px; width:100%; margin:0 15mm; color:#57606a;
+    <div style="font-size:8px; ${box} color:#57606a;
       display:flex; justify-content:space-between; align-items:center;">
       <span>${footer}</span>
       ${pageNumbers}

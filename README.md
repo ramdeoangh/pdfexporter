@@ -29,7 +29,7 @@ Or install from the web: [marketplace.visualstudio.com/items?itemName=ramdeoangh
 
 ```bash
 # Or install from the command line (Cursor)
-cursor --install-extension pdfexporter-0.2.1.vsix
+cursor --install-extension pdfexporter-0.2.4.vsix
 ```
 
 ### Option 3 — Build from source
@@ -50,7 +50,8 @@ Install the generated `package/pdfexporter-*.vsix` as above, or press `F5` to ru
 | --- | --- |
 | **Browser** | Google Chrome or Microsoft Edge (for PDF rendering) |
 | **Editor** | VS Code or Cursor `1.85.0+` |
-| **Windows tip** | Keep `node` on your PATH for reliable exports |
+
+Node.js does not need to be installed: exports run on the editor's own runtime.
 
 If the browser is not auto-detected, set `pdfexporter.executablePath` in Settings.
 
@@ -126,7 +127,7 @@ flowchart TD
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `pdfexporter.outputDirectory` | `""` | Output folder (empty = same folder as the `.md` file) |
+| `pdfexporter.outputDirectory` | `""` | Output folder (empty = same folder as the `.md` file; relative paths start from the `.md` file's folder) |
 | `pdfexporter.executablePath` | `""` | Path to Chrome/Edge |
 | `pdfexporter.pageFormat` | `A4` | A4, Letter, Legal, Tabloid |
 | `pdfexporter.renderMermaid` | `true` | Render Mermaid diagrams |

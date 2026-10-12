@@ -16,3 +16,7 @@ docs/**
 scripts/**
 examples/**
 package/*.vsix
+.github/**
+# Never ship exported documents or scratch files left next to the build output.
+**/*.pdf
+package/*.md
