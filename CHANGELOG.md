@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.6
+
+- **MD Preview now shows the real PDF.** It runs the same export as Export to PDF and draws the pages with PDF.js, so the page size, page breaks, diagram sizes, cover page, header, footer and page numbers match the exported file. Previously it was a plain HTML page that ignored front matter, could switch to dark styles, and had no pages.
+- The preview uses the editor's current text, unsaved edits included, and refreshes on save. The toolbar has **Refresh** and **Export PDF**; errors show in a banner with **Show Log**.
+- Long documents stay light: only pages near the visible area are drawn. The scroll position is kept across refreshes.
+- Running MD Preview again reuses the panel in its column and keeps focus in the editor, instead of opening extra editor columns.
+
 ## 0.2.5
 
 - PDFs with color emoji (✅, ⏳, …) no longer fail in PDF.js 2.x viewers such as the tomoki1207 VS Code PDF extension (`Requesting object that isn't resolved yet pattern_…`). Emoji in text, tables, code and diagram labels are drawn as images, keeping their color; emoji in SVG diagram text use monochrome glyphs.

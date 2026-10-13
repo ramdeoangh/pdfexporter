@@ -13,10 +13,14 @@ export function getLogoPath(extensionPath?: string): string {
   return path.join(root, "package", "assets", "img", "mdexport.png");
 }
 
+export function getVendorDir(extensionPath: string | undefined): string {
+  const root = extensionPath ?? path.resolve(__dirname, "..", "..");
+  return path.join(root, "package", "assets", "vendor");
+}
+
 export function getVendorAssetPath(
   extensionPath: string | undefined,
   fileName: string
 ): string {
-  const root = extensionPath ?? path.resolve(__dirname, "..", "..");
-  return path.join(root, "package", "assets", "vendor", fileName);
+  return path.join(getVendorDir(extensionPath), fileName);
 }

@@ -104,22 +104,22 @@ export function activate(context: vscode.ExtensionContext): void {
           return;
         }
 
-        const config = getExporterConfig();
+        const alreadyVisible = vscode.window.visibleTextEditors.some(
+          (editor) => editor.document.uri.toString() === markdownUri.toString()
+        );
 
-        try {
-          await vscode.window.showTextDocument(markdownUri, {
-            preview: false,
-            preserveFocus: false,
-          });
-        } catch {
-          // Explorer-only preview is still supported when the file cannot be opened.
+        if (!alreadyVisible) {
+          try {
+            await vscode.window.showTextDocument(markdownUri, {
+              preview: false,
+              preserveFocus: false,
+            });
+          } catch {
+            // Explorer-only preview is still supported when the file cannot be opened.
+          }
         }
 
-        MarkdownPreviewPanel.show(
-          context.extensionPath,
-          markdownUri,
-          config
-        );
+        MarkdownPreviewPanel.show(context.extensionPath, markdownUri, log);
       }
     )
   );

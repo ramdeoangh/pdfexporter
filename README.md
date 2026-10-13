@@ -29,7 +29,7 @@ Or install from the web: [marketplace.visualstudio.com/items?itemName=ramdeoangh
 
 ```bash
 # Or install from the command line (Cursor)
-cursor --install-extension pdfexporter-0.2.5.vsix
+cursor --install-extension pdfexporter-0.2.6.vsix
 ```
 
 ### Option 3 — Build from source
@@ -82,7 +82,7 @@ If the browser is not auto-detected, set `pdfexporter.executablePath` in Setting
 | --- | --- |
 | **Mermaid & diagrams** | ` ```mermaid ` blocks render as real diagrams in the PDF |
 | **Local images** | `![alt](./image.png)` embedded from your project |
-| **MD Preview** | Live preview panel before you export |
+| **MD Preview** | Shows the exact PDF before you export, unsaved edits included; refreshes on save |
 | **Front matter** | Title, author, date, logo, margins per document |
 | **Headers & footers** | Custom text and page numbers on every page |
 | **Batch export** | Export every `.md` file in a folder at once |
