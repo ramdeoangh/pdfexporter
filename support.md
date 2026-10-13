@@ -32,6 +32,8 @@ When opening an issue, please include:
 2. Right-click → **MD-PDF Exporter** → **MD Preview**
 3. Or `Ctrl+Shift+M` (Mac: `Cmd+Shift+M`)
 
+The preview shows the actual PDF that **Export to PDF** produces (same pages, breaks, header and footer), including unsaved edits. It refreshes when you save; click **Refresh** to see unsaved changes, or **Export PDF** to save the file. Each refresh takes a couple of seconds because it renders the real PDF.
+
 ### Export to PDF
 
 1. Open a `.md` file
@@ -142,11 +144,14 @@ flowchart TD
 
 ### MD Preview panel is blank or shows an error
 
+The preview runs the same export as **Export to PDF**, so the same fixes apply (browser path, timeouts, images). Click **Show Log** in the red banner for the full error.
+
 **Fix:**
 
-1. Reload the window: Command Palette → **Developer: Reload Window**
-2. Check the sample file: `examples/sample.md`
-3. Open an issue with the error text from the preview panel
+1. Click **Refresh** in the preview toolbar
+2. Reload the window: Command Palette → **Developer: Reload Window**
+3. Check the sample file: `examples/sample.md`
+4. Open an issue with the error text from the log
 
 ---
 

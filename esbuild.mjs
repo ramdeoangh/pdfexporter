@@ -44,6 +44,15 @@ const vendorAssets = [
     "node_modules/mermaid/dist/mermaid.min.js",
     "package/assets/vendor/mermaid.min.js",
   ],
+  // MD Preview draws the exported PDF with PDF.js (legacy build: older editors).
+  [
+    "node_modules/pdfjs-dist/legacy/build/pdf.min.mjs",
+    "package/assets/vendor/pdfjs.min.mjs",
+  ],
+  [
+    "node_modules/pdfjs-dist/legacy/build/pdf.worker.min.mjs",
+    "package/assets/vendor/pdfjs.worker.min.mjs",
+  ],
 ];
 
 for (const [source, destination] of vendorAssets) {

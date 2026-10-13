@@ -1,15 +1,26 @@
 import { spawn } from "child_process";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 import { ExporterConfig } from "./config";
 import { exportMarkdownToPdf } from "./pdfExporter";
 import { getExportCliPath } from "./paths";
 
 class SpawnError extends Error {}
 
-export async function exportMarkdownToPdfViaHost(options: {
+export interface HostExportOptions {
   markdownPath: string;
   config: ExporterConfig;
   extensionPath: string;
-}): Promise<string> {
+  /** Text to export instead of the file on disk (e.g. unsaved editor content). */
+  markdownContent?: string;
+  /** Where to write the PDF; defaults to next to the Markdown file. */
+  outputPath?: string;
+}
+
+export async function exportMarkdownToPdfViaHost(
+  options: HostExportOptions
+): Promise<string> {
   try {
     return await exportInSubprocess(options);
   } catch (subprocessError) {
@@ -17,11 +28,7 @@ export async function exportMarkdownToPdfViaHost(options: {
       throw subprocessError;
     }
 
-    return exportMarkdownToPdf({
-      markdownPath: options.markdownPath,
-      config: options.config,
-      extensionPath: options.extensionPath,
-    });
+    return exportMarkdownToPdf(options);
   }
 }
 
@@ -31,20 +38,48 @@ export async function exportMarkdownToPdfViaHost(options: {
  * runs as Node with ELECTRON_RUN_AS_NODE) so Node does not have to be installed
  * or on PATH. No shell is involved, so paths with spaces are passed intact.
  */
-function exportInSubprocess(options: {
-  markdownPath: string;
-  config: ExporterConfig;
-  extensionPath: string;
-}): Promise<string> {
+async function exportInSubprocess(options: HostExportOptions): Promise<string> {
+  // Too large for an environment variable, so hand unsaved text over in a file.
+  const contentFile =
+    options.markdownContent === undefined
+      ? undefined
+      : path.join(
+          os.tmpdir(),
+          `pdfexporter-source-${Date.now()}-${Math.random().toString(36).slice(2)}.md`
+        );
+
+  if (contentFile) {
+    fs.writeFileSync(contentFile, options.markdownContent ?? "", "utf8");
+  }
+
+  try {
+    return await runExportCli(options, contentFile);
+  } finally {
+    if (contentFile) {
+      fs.rmSync(contentFile, { force: true });
+    }
+  }
+}
+
+function runExportCli(
+  options: HostExportOptions,
+  contentFile: string | undefined
+): Promise<string> {
   return new Promise((resolve, reject) => {
     const cliScript = getExportCliPath(options.extensionPath);
-    const child = spawn(process.execPath, [cliScript, options.markdownPath], {
+    const args = [cliScript, options.markdownPath];
+    if (options.outputPath) {
+      args.push(options.outputPath);
+    }
+
+    const child = spawn(process.execPath, args, {
       cwd: options.extensionPath,
       env: {
         ...process.env,
         ELECTRON_RUN_AS_NODE: "1",
         PDFEXPORTER_CONFIG: JSON.stringify(options.config),
         PDFEXPORTER_EXTENSION_PATH: options.extensionPath,
+        ...(contentFile ? { PDFEXPORTER_CONTENT_FILE: contentFile } : {}),
       },
       windowsHide: true,
     });

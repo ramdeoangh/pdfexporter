@@ -7,19 +7,18 @@ import type Token from "markdown-it/lib/token.mjs";
 import type { Options } from "markdown-it";
 import hljs from "highlight.js";
 
-export type ImageSrcResolver = (src: string, markdownDir: string) => string;
+type ImageSrcResolver = (src: string, markdownDir: string) => string;
 
 export interface ProcessMarkdownOptions {
   markdownPath: string;
   renderMermaid: boolean;
-  resolveImageSrc?: ImageSrcResolver;
 }
 
 /**
  * markdown-it percent-encodes link targets (`my chart.png` -> `my%20chart.png`),
  * so try the decoded path first and fall back to the literal one.
  */
-export function resolveLocalImagePath(
+function resolveLocalImagePath(
   src: string,
   markdownDir: string
 ): string | undefined {
@@ -161,11 +160,10 @@ export function processMarkdown(
   options: ProcessMarkdownOptions
 ): string {
   const markdownDir = path.dirname(options.markdownPath);
-  const resolveImage = options.resolveImageSrc ?? resolveImageSrc;
   const md = createMarkdownIt(
     markdownDir,
     options.renderMermaid,
-    resolveImage
+    resolveImageSrc
   );
   return md.render(markdown);
 }

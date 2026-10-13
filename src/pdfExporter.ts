@@ -23,6 +23,8 @@ const IMAGE_LOAD_TIMEOUT_MS = 15000;
 
 export interface ExportPdfOptions {
   markdownPath: string;
+  /** Text to export instead of the file on disk (e.g. unsaved editor content). */
+  markdownContent?: string;
   outputPath?: string;
   config: ExporterConfig;
   extensionPath?: string;
@@ -32,7 +34,8 @@ export async function exportMarkdownToPdf(
   options: ExportPdfOptions
 ): Promise<string> {
   const markdownPath = path.resolve(options.markdownPath);
-  const rawMarkdown = fs.readFileSync(markdownPath, "utf8");
+  const rawMarkdown =
+    options.markdownContent ?? fs.readFileSync(markdownPath, "utf8");
   const fallbackTitle = path.basename(
     markdownPath,
     path.extname(markdownPath)
